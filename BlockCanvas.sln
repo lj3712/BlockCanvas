@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockCanvas", "BlockCanvas.csproj", "{5A65A7CD-72F4-3E30-F676-CB3D217C8034}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A65A7CD-72F4-3E30-F676-CB3D217C8034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A65A7CD-72F4-3E30-F676-CB3D217C8034}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A65A7CD-72F4-3E30-F676-CB3D217C8034}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A65A7CD-72F4-3E30-F676-CB3D217C8034}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AA9415C5-9394-442F-9AC3-D886E118BC58}
+	EndGlobalSection
+EndGlobal
