@@ -1,0 +1,111 @@
+name: Apply patch as PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      patch:
+        description: "Paste a unified diff or git-format-patch content"
+        required: false
+      patch_url:
+        description: "OR provide a URL to a .patch/.diff (raw)"
+        required: false
+      branch_name:
+        description: "Branch name to create (optional)"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config core.autocrlf false
+          git config core.eol lf
+
+      - name: Resolve branch name
+        id: br
+        run: |
+          B="${{ github.event.inputs.branch_name }}"
+          if [ -z "$B" ]; then
+            TS=$(date +%Y%m%d-%H%M%S)
+            B="apply-patch/$TS"
+          fi
+          echo "branch=$B" >> "$GITHUB_OUTPUT"
+
+      - name: Create working branch
+        run: |
+          git checkout -b "${{ steps.br.outputs.branch }}"
+
+      - name: Fetch patch content
+        id: fetch
+        run: |
+          set -e
+          echo "::group::Collect patch"
+          mkdir -p .github/tmp
+          FILE=".github/tmp/incoming.patch"
+          if [ -n "${{ github.event.inputs.patch_url }}" ]; then
+            echo "Downloading: ${{ github.event.inputs.patch_url }}"
+            curl -L -s -o "$FILE" "${{ github.event.inputs.patch_url }}"
+          elif [ -n "${{ github.event.inputs.patch }}" ]; then
+            # Write the raw multiline input as-is
+            printf "%b" "${{ github.event.inputs.patch }}" > "$FILE"
+          else
+            echo "No patch or patch_url provided." >&2
+            exit 1
+          fi
+          dos2unix "$FILE" >/dev/null 2>&1 || true
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "::endgroup::"
+
+      - name: Try git am (email-style patches)
+        id: try_am
+        continue-on-error: true
+        run: |
+          set -e
+          git am --3way --reject "${{ steps.fetch.outputs.file }}"
+
+      - name: If git am failed, try git apply (plain unified diff)
+        if: steps.try_am.outcome == 'failure'
+        run: |
+          set -e
+          git am --abort || true
+          git apply --whitespace=nowarn --recount -3 "${{ steps.fetch.outputs.file }}" || true
+          # If rejects were created, fail with artifact
+          REJECTS=$(git ls-files -o | grep -E '\.rej$' || true)
+          if [ -n "$REJECTS" ]; then
+            echo "Rejects detected:"
+            echo "$REJECTS"
+            echo "Please fix manually and rerun."
+            exit 1
+          fi
+          # If we got here, files applied; stage them for commit
+          git add -A
+          git commit -m "Apply unified diff from workflow input"
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ steps.br.outputs.branch }}
+          title: "Apply patch via workflow: ${{ steps.br.outputs.branch }}"
+          body: |
+            This PR was created by the **Apply patch as PR** workflow.
+
+            Inputs:
+            - patch_url: `${{ github.event.inputs.patch_url }}`
+            - branch_name: `${{ github.event.inputs.branch_name }}`
+
+            If any rejects occurred during `git am`, the job would have failed.
+          commit-message: "Apply patch via workflow"
+          delete-branch: false
+          draft: false
