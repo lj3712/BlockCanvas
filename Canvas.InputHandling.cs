@@ -136,13 +136,14 @@ namespace BlockCanvas {
                     menu.Items.Add(miDelete);
 
                     var deleteItem = new ToolStripMenuItem("Delete", null, (_, __) => {
-                        if (hitNode != null && !hitNode.IsPermanent) {
-                            current.Edges.RemoveAll(ed => ed.FromNode == hitNode || ed.ToNode == hitNode);
-                            current.Nodes.Remove(hitNode);
-                            selection.Remove(hitNode);
+                        var portOwner = hitPort.Owner;
+                        if (portOwner != null && !portOwner.IsPermanent) {
+                            current.Edges.RemoveAll(ed => ed.FromNode == portOwner || ed.ToNode == portOwner);
+                            current.Nodes.Remove(portOwner);
+                            selection.Remove(portOwner);
                             Invalidate();
                         }
-                    }) { Enabled = !hitNode.IsPermanent };
+                    }) { Enabled = !hitPort.Owner.IsPermanent };
                     menu.Items.Add(deleteItem);
 
 
