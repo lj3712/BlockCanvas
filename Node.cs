@@ -13,7 +13,8 @@ namespace BlockCanvas {
         Regular,
         Start,
         End,
-        Const
+        Const,
+        Decision
     }
     public sealed class Node {
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -51,6 +52,11 @@ namespace BlockCanvas {
                     // CONST blocks need an input to trigger processing and one output for the constant value
                     Inputs.Add(new Port(this, PortSide.Input, "Trigger", "Integer"));
                     Outputs.Add(new Port(this, PortSide.Output, "Value", "Integer"));
+                } else if (Type == NodeType.Decision) {
+                    // Decision blocks take one integer input and have TRUE/FALSE bit outputs
+                    Inputs.Add(new Port(this, PortSide.Input, "Input", "Integer"));
+                    Outputs.Add(new Port(this, PortSide.Output, "FALSE", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "TRUE", "Bit"));
                 } else {
                     // Regular nodes get default ports
                     Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));

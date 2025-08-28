@@ -135,10 +135,16 @@ namespace BlockCanvas {
             }
 
             var rect = n.Bounds;
-            float radius = 10f;
-
-            using var path = RoundedRect(rect, radius);
             var selected = selection.Contains(n);
+
+            // Special diamond shape for Decision blocks
+            if (n.Type == NodeType.Decision) {
+                DrawDecisionNode(g, n, selected);
+                return;
+            }
+
+            float radius = 10f;
+            using var path = RoundedRect(rect, radius);
             
             // Special colors for START and END blocks
             LinearGradientBrush fill;
@@ -330,6 +336,53 @@ namespace BlockCanvas {
                 
                 g.FillRectangle(br, handle);
                 g.DrawRectangle(pen, handle.X, handle.Y, handle.Width, handle.Height);
+            }
+        }
+
+        private void DrawDecisionNode(Graphics g, Node n, bool selected) {
+            var rect = n.Bounds;
+            var centerX = rect.X + rect.Width / 2;
+            var centerY = rect.Y + rect.Height / 2;
+            
+            // Create diamond shape
+            var diamond = new PointF[] {
+                new PointF(centerX, rect.Top),           // Top
+                new PointF(rect.Right, centerY),        // Right
+                new PointF(centerX, rect.Bottom),       // Bottom
+                new PointF(rect.Left, centerY)          // Left
+            };
+            
+            // Fill and border colors - purple/magenta for decision blocks
+            var fillColor1 = Color.FromArgb(120, 58, 120);
+            var fillColor2 = Color.FromArgb(80, 44, 80);
+            var borderColor = selected ? Color.FromArgb(255, 120, 255) : Color.FromArgb(150, 85, 150);
+            
+            using var path = new GraphicsPath();
+            path.AddPolygon(diamond);
+            
+            using var fill = new LinearGradientBrush(rect, fillColor1, fillColor2, LinearGradientMode.Vertical);
+            using var border = new Pen(borderColor, selected ? 2.5f : 1.5f);
+            
+            g.FillPath(fill, path);
+            g.DrawPath(border, path);
+            
+            // Draw title text
+            using var textBrush = new SolidBrush(Color.White);
+            var sf = new StringFormat {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+                Trimming = StringTrimming.EllipsisCharacter
+            };
+            
+            g.DrawString(n.Title, titleFont, textBrush, rect, sf);
+            
+            // Draw ports
+            foreach (var p in n.Inputs) DrawPort(g, p, isInput: true);
+            foreach (var p in n.Outputs) DrawPort(g, p, isInput: false);
+            
+            if (selected) {
+                DrawPortResizeHandles(g, n);
+                // Note: No regular resize handles for diamond shape
             }
         }
 

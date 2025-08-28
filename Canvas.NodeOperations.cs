@@ -200,9 +200,9 @@ namespace BlockCanvas {
         private int CurrentLevel() => GetTrail().Count;
 
         private void AddInputPort(Node node, string? name = null, string typeName = "Integer") {
-            // Handle special cases for START blocks
-            if (node.Type == NodeType.Start) {
-                System.Media.SystemSounds.Beep.Play(); // START blocks don't have input ports
+            // Handle special cases for primitive blocks
+            if (node.Type == NodeType.Start || node.Type == NodeType.Decision) {
+                System.Media.SystemSounds.Beep.Play(); // These blocks have fixed input port configurations
                 return;
             }
             
@@ -220,9 +220,9 @@ namespace BlockCanvas {
         }
         
         private void AddOutputPort(Node node, string? name = null, string typeName = "Integer") {
-            // Handle special cases for START, END, and CONST blocks
-            if (node.Type == NodeType.End) {
-                System.Media.SystemSounds.Beep.Play(); // END blocks don't have output ports
+            // Handle special cases for primitive blocks
+            if (node.Type == NodeType.End || node.Type == NodeType.Decision) {
+                System.Media.SystemSounds.Beep.Play(); // These blocks have fixed output port configurations
                 return;
             }
             
@@ -251,6 +251,10 @@ namespace BlockCanvas {
             }
             if (node.Type == NodeType.End && node.Inputs.Count <= 1) {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete last input port from END block
+                return;
+            }
+            if (node.Type == NodeType.Decision) {
+                System.Media.SystemSounds.Beep.Play(); // Can't delete ports from Decision block
                 return;
             }
             

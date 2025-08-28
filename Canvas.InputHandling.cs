@@ -20,8 +20,9 @@ namespace BlockCanvas {
             var world = ScreenToWorld(e.Location);
             Node? hitNode = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(world));
             if (hitNode != null) {
-                // Don't allow zooming into START, END, and CONST blocks (primitives)
-                if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End || hitNode.Type == NodeType.Const) {
+                // Don't allow zooming into primitive blocks
+                if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End || 
+                    hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Decision) {
                     System.Media.SystemSounds.Beep.Play();
                     return;
                 }
@@ -271,9 +272,9 @@ namespace BlockCanvas {
                     var addInputItem = new ToolStripMenuItem("Add Input Port", null, (_, __) => AddInputPort(hitNode));
                     var addOutputItem = new ToolStripMenuItem("Add Output Port", null, (_, __) => AddOutputPort(hitNode));
                     
-                    // Disable inappropriate port operations for START/END blocks
-                    if (hitNode.Type == NodeType.Start) addInputItem.Enabled = false;
-                    if (hitNode.Type == NodeType.End) addOutputItem.Enabled = false;
+                    // Disable inappropriate port operations for primitive blocks
+                    if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Decision) addInputItem.Enabled = false;
+                    if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Decision) addOutputItem.Enabled = false;
                     
                     menu.Items.Add(addInputItem);
                     menu.Items.Add(addOutputItem);
@@ -345,6 +346,7 @@ namespace BlockCanvas {
                     }
                     
                     primitivesMenu.DropDownItems.Add("CONST", null, (_, __) => AddPrimitiveAt("CONST", NodeType.Const));
+                    primitivesMenu.DropDownItems.Add("DECISION", null, (_, __) => AddPrimitiveAt("DECISION", NodeType.Decision));
                     
                     menu.Items.Add(primitivesMenu);
 
