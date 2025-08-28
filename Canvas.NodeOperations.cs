@@ -155,9 +155,9 @@ namespace BlockCanvas {
         private int CurrentLevel() => GetTrail().Count;
 
         private void AddInputPort(Node node, string? name = null, string typeName = "Integer") {
-            // Handle special cases for START and END blocks
-            if (node.Type == NodeType.Start) {
-                System.Media.SystemSounds.Beep.Play(); // START blocks don't have input ports
+            // Handle special cases for START, END, and CONST blocks
+            if (node.Type == NodeType.Start || node.Type == NodeType.Const) {
+                System.Media.SystemSounds.Beep.Play(); // START and CONST blocks don't have input ports
                 return;
             }
             
@@ -175,7 +175,7 @@ namespace BlockCanvas {
         }
         
         private void AddOutputPort(Node node, string? name = null, string typeName = "Integer") {
-            // Handle special cases for START and END blocks
+            // Handle special cases for START, END, and CONST blocks
             if (node.Type == NodeType.End) {
                 System.Media.SystemSounds.Beep.Play(); // END blocks don't have output ports
                 return;
@@ -184,6 +184,10 @@ namespace BlockCanvas {
             if (node.Type == NodeType.Start) {
                 // For START blocks, use automatic numbering
                 name = $"Out{node.Outputs.Count + 1}";
+            } else if (node.Type == NodeType.Const) {
+                // CONST blocks can't add additional output ports
+                System.Media.SystemSounds.Beep.Play();
+                return;
             } else {
                 name ??= UniquePortName(node.Outputs.Select(p => p.Name), "Out");
             }
@@ -199,13 +203,17 @@ namespace BlockCanvas {
             if (port.Owner.IsProxy) return;
             var node = port.Owner;
             
-            // Special handling for START and END blocks - prevent deletion of last port
+            // Special handling for START, END, and CONST blocks - prevent deletion of essential ports
             if (node.Type == NodeType.Start && node.Outputs.Count <= 1) {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete last output port from START block
                 return;
             }
             if (node.Type == NodeType.End && node.Inputs.Count <= 1) {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete last input port from END block
+                return;
+            }
+            if (node.Type == NodeType.Const) {
+                System.Media.SystemSounds.Beep.Play(); // Can't delete ports from CONST block
                 return;
             }
             

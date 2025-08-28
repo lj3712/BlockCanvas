@@ -153,6 +153,10 @@ namespace BlockCanvas {
                     fill = new LinearGradientBrush(rect, Color.FromArgb(120, 58, 58), Color.FromArgb(80, 44, 44), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(255, 120, 120) : Color.FromArgb(150, 85, 85), selected ? 2.5f : 1.5f);
                     break;
+                case NodeType.Const:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(120, 120, 58), Color.FromArgb(80, 80, 44), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(255, 255, 120) : Color.FromArgb(150, 150, 85), selected ? 2.5f : 1.5f);
+                    break;
                 default:
                     fill = new LinearGradientBrush(rect, Color.FromArgb(58, 62, 70), Color.FromArgb(44, 47, 53), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(120, 190, 255) : Color.FromArgb(85, 90, 100), selected ? 2.5f : 1.5f);
@@ -178,6 +182,10 @@ namespace BlockCanvas {
                     titleBrush = new SolidBrush(Color.FromArgb(120, 70, 70));
                     titleBorder = new Pen(Color.FromArgb(150, 90, 90), 1);
                     break;
+                case NodeType.Const:
+                    titleBrush = new SolidBrush(Color.FromArgb(120, 120, 70));
+                    titleBorder = new Pen(Color.FromArgb(150, 150, 90), 1);
+                    break;
                 default:
                     titleBrush = new SolidBrush(Color.FromArgb(70, 74, 82));
                     titleBorder = new Pen(Color.FromArgb(90, 95, 105), 1);
@@ -196,7 +204,10 @@ namespace BlockCanvas {
                 Trimming = StringTrimming.EllipsisCharacter,
                 FormatFlags = StringFormatFlags.LineLimit
             };
-            g.DrawString(n.Title, titleFont, textBrush,
+            
+            // For CONST blocks, show the value in addition to the title
+            string displayTitle = n.Type == NodeType.Const ? $"{n.Title} [{n.ConstValue}]" : n.Title;
+            g.DrawString(displayTitle, titleFont, textBrush,
                          new RectangleF(titleRect.X + 8, titleRect.Y + 6, titleRect.Width - 16, titleRect.Height - 8),
                          sfTitle);
             foreach (var p in n.Inputs) DrawPort(g, p, isInput: true);

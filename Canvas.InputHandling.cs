@@ -20,8 +20,8 @@ namespace BlockCanvas {
             var world = ScreenToWorld(e.Location);
             Node? hitNode = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(world));
             if (hitNode != null) {
-                // Don't allow zooming into START and END blocks
-                if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End) {
+                // Don't allow zooming into START, END, and CONST blocks (primitives)
+                if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End || hitNode.Type == NodeType.Const) {
                     System.Media.SystemSounds.Beep.Play();
                     return;
                 }
@@ -205,12 +205,24 @@ namespace BlockCanvas {
                     var addInputItem = new ToolStripMenuItem("Add Input Port", null, (_, __) => AddInputPort(hitNode));
                     var addOutputItem = new ToolStripMenuItem("Add Output Port", null, (_, __) => AddOutputPort(hitNode));
                     
-                    // Disable inappropriate port operations for START/END blocks
-                    if (hitNode.Type == NodeType.Start) addInputItem.Enabled = false;
-                    if (hitNode.Type == NodeType.End) addOutputItem.Enabled = false;
+                    // Disable inappropriate port operations for START/END/CONST blocks
+                    if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Const) addInputItem.Enabled = false;
+                    if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Const) addOutputItem.Enabled = false;
                     
                     menu.Items.Add(addInputItem);
                     menu.Items.Add(addOutputItem);
+
+                    // Add CONST value configuration option
+                    if (hitNode.Type == NodeType.Const) {
+                        menu.Items.Add(new ToolStripSeparator());
+                        menu.Items.Add("Configure Value…", null, (_, __) => {
+                            string? s = Microsoft.VisualBasic.Interaction.InputBox("Constant value:", "Configure CONST Value", hitNode.ConstValue);
+                            if (!string.IsNullOrWhiteSpace(s)) {
+                                hitNode.ConstValue = s.Trim();
+                                Invalidate();
+                            }
+                        });
+                    }
 
                     var rmIn = new ToolStripMenuItem("Remove Input Port");
                     for (int i = 0; i < hitNode.Inputs.Count; i++) {
@@ -258,6 +270,16 @@ namespace BlockCanvas {
 
                     // Primitives submenu
                     var primitivesMenu = new ToolStripMenuItem("Primitives");
+                    
+                    void AddPrimitiveAt(string title, NodeType nodeType) {
+                        var world = ScreenToWorld(e.Location);
+                        var pos = new PointF(world.X - 30, world.Y - 16);
+                        var n = new Node(title, pos, createDefaultPorts: true, nodeType);
+                        AddNode(n);
+                    }
+                    
+                    primitivesMenu.DropDownItems.Add("CONST", null, (_, __) => AddPrimitiveAt("CONST", NodeType.Const));
+                    
                     menu.Items.Add(primitivesMenu);
 
                     if (selection.Count > 0 && selection.Any(n => !n.IsProxy)) {

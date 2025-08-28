@@ -39,6 +39,7 @@ namespace BlockCanvas {
 
         [JsonPropertyName("type")] public string Type { get; set; } = "Regular";
         [JsonPropertyName("isPermanent")] public bool IsPermanent { get; set; } = false;
+        [JsonPropertyName("constValue")] public string ConstValue { get; set; } = "0";
 
         [JsonPropertyName("inputs")] public List<PortDef> Inputs { get; set; } = new();
         [JsonPropertyName("outputs")] public List<PortDef> Outputs { get; set; } = new();

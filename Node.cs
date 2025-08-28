@@ -12,7 +12,8 @@ namespace BlockCanvas {
     public enum NodeType {
         Regular,
         Start,
-        End
+        End,
+        Const
     }
     public sealed class Node {
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -30,6 +31,7 @@ namespace BlockCanvas {
         public float TitleH = 28f; // dynamic title bar height (min 28)
         public NodeType Type { get; set; } = NodeType.Regular;
         public bool IsPermanent = false; // Cannot be deleted
+        public string ConstValue { get; set; } = "0"; // Value for CONST blocks
 
 
 
@@ -45,6 +47,9 @@ namespace BlockCanvas {
                 } else if (Type == NodeType.End) {
                     // END blocks have infinite input ports, start with one
                     Inputs.Add(new Port(this, PortSide.Input, "In1", "Integer"));
+                } else if (Type == NodeType.Const) {
+                    // CONST blocks have no inputs, just one output
+                    Outputs.Add(new Port(this, PortSide.Output, "Value", "Integer"));
                 } else {
                     // Regular nodes get default ports
                     Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));
