@@ -29,6 +29,7 @@ namespace BlockCanvas {
         public int ProxyIndex = 0;
         public float TitleH = 28f; // dynamic title bar height (min 28)
         public NodeType Type { get; set; } = NodeType.Regular;
+        public bool IsPermanent = false; // Cannot be deleted
 
 
 

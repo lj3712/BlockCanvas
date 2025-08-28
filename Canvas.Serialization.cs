@@ -28,6 +28,7 @@ namespace BlockCanvas {
                     ProxyIsInlet = n.ProxyIsInlet,
                     ProxyIndex = n.ProxyIndex,
                     Type = n.Type.ToString(),
+                    IsPermanent = n.IsPermanent,
                     Inputs = n.Inputs.Select(p => new PortDef { Name = p.Name, Type = p.TypeName }).ToList(),
                     Outputs = n.Outputs.Select(p => new PortDef { Name = p.Name, Type = p.TypeName }).ToList(),
                     Inner = n.Inner != null ? ToDto(n.Inner) : null
@@ -55,6 +56,7 @@ namespace BlockCanvas {
                     IsProxy = nDto.IsProxy,
                     ProxyIsInlet = nDto.ProxyIsInlet,
                     ProxyIndex = nDto.ProxyIndex,
+                    IsPermanent = nDto.IsPermanent,
                     Size = new SizeF(nDto.W <= 0 ? 190 : nDto.W, nDto.H <= 0 ? 98 : nDto.H)
                 };
 

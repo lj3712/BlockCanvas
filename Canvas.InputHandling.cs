@@ -37,7 +37,7 @@ namespace BlockCanvas {
             }
             if (e.KeyCode == Keys.Delete && selection.Count > 0) {
                 foreach (var node in selection.ToList()) {
-                    if (node.IsProxy) continue;
+                    if (node.IsProxy || node.IsPermanent) continue;
                     current.Edges.RemoveAll(ed => ed.FromNode == node || ed.ToNode == node);
                     current.Nodes.Remove(node);
                 }
@@ -135,14 +135,15 @@ namespace BlockCanvas {
                     var miDelete = new ToolStripMenuItem("Delete Port", null, (_, __) => DeletePort(hitPort)) { Enabled = !hitPort.Owner.IsProxy };
                     menu.Items.Add(miDelete);
 
-                    menu.Items.Add("Delete", null, (_, __) => {
-                        if (hitNode != null) {
+                    var deleteItem = new ToolStripMenuItem("Delete", null, (_, __) => {
+                        if (hitNode != null && !hitNode.IsPermanent) {
                             current.Edges.RemoveAll(ed => ed.FromNode == hitNode || ed.ToNode == hitNode);
                             current.Nodes.Remove(hitNode);
                             selection.Remove(hitNode);
                             Invalidate();
                         }
-                    });
+                    }) { Enabled = !hitNode.IsPermanent };
+                    menu.Items.Add(deleteItem);
 
 
 
@@ -183,12 +184,15 @@ namespace BlockCanvas {
                         string? s = Microsoft.VisualBasic.Interaction.InputBox("Node title:", "Rename Node", hitNode.Title);
                         if (!string.IsNullOrWhiteSpace(s)) { hitNode.Title = s.Trim(); Invalidate(); }
                     });
-                    menu.Items.Add("Delete", null, (_, __) => {
-                        current.Edges.RemoveAll(ed => ed.FromNode == hitNode || ed.ToNode == hitNode);
-                        current.Nodes.Remove(hitNode);
-                        selection.Remove(hitNode);
-                        Invalidate();
-                    });
+                    var nodeDeleteItem = new ToolStripMenuItem("Delete", null, (_, __) => {
+                        if (!hitNode.IsPermanent) {
+                            current.Edges.RemoveAll(ed => ed.FromNode == hitNode || ed.ToNode == hitNode);
+                            current.Nodes.Remove(hitNode);
+                            selection.Remove(hitNode);
+                            Invalidate();
+                        }
+                    }) { Enabled = !hitNode.IsPermanent };
+                    menu.Items.Add(nodeDeleteItem);
 
                     // NEW: Duplicate
                     var miDup = new ToolStripMenuItem("Duplicate", null, (_, __) => DuplicateNode(hitNode)) {
@@ -243,16 +247,14 @@ namespace BlockCanvas {
                     // Blank-canvas context menu (no demo entries)
                     var menu = new ContextMenuStrip();
 
-                    void AddAt(string title, NodeType nodeType = NodeType.Regular) {
+                    void AddAt(string title) {
                         var world = ScreenToWorld(e.Location);
                         var pos = new PointF(world.X - 30, world.Y - 16);
-                        var n = new Node(title, pos, createDefaultPorts: true, nodeType);
+                        var n = new Node(title, pos, createDefaultPorts: false);
                         AddNode(n);
                     }
 
                     menu.Items.Add("Add Block Here", null, (_, __) => AddAt("Block"));
-                    menu.Items.Add("Add START Block", null, (_, __) => AddAt("START", NodeType.Start));
-                    menu.Items.Add("Add END Block", null, (_, __) => AddAt("END", NodeType.End));
 
                     if (selection.Count > 0 && selection.Any(n => !n.IsProxy)) {
                         menu.Items.Add(new ToolStripSeparator());

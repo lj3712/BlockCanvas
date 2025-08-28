@@ -54,6 +54,9 @@ namespace BlockCanvas {
             KeyDown += OnKeyDown;
             MouseWheel += OnMouseWheel;
             TabStop = true;
+
+            // Create permanent START and END blocks
+            CreatePermanentBlocks();
         }
 
         // Public ops
@@ -67,6 +70,7 @@ namespace BlockCanvas {
             current = root;
             selection.Clear();
             connectStartPort = null;
+            CreatePermanentBlocks();
             Invalidate();
         }
         public void SaveTo(string path) {
@@ -83,7 +87,33 @@ namespace BlockCanvas {
             current = root;
             selection.Clear();
             connectStartPort = null;
+            CreatePermanentBlocks(); // Ensure START and END blocks exist
             Invalidate();
+        }
+
+        private void CreatePermanentBlocks() {
+            // Only create permanent blocks at the root level
+            if (current != root) return;
+            
+            // Check if START and END blocks already exist
+            bool hasStart = current.Nodes.Any(n => n.Type == NodeType.Start);
+            bool hasEnd = current.Nodes.Any(n => n.Type == NodeType.End);
+            
+            if (!hasStart) {
+                var startNode = new Node("START", new PointF(50, 100), createDefaultPorts: true, NodeType.Start) {
+                    IsPermanent = true
+                };
+                current.Nodes.Add(startNode);
+                startNode.LayoutPorts();
+            }
+            
+            if (!hasEnd) {
+                var endNode = new Node("END", new PointF(400, 100), createDefaultPorts: true, NodeType.End) {
+                    IsPermanent = true
+                };
+                current.Nodes.Add(endNode);
+                endNode.LayoutPorts();
+            }
         }
 
         // ===== World/screen helpers =====
