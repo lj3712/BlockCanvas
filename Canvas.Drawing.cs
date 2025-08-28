@@ -266,7 +266,10 @@ namespace BlockCanvas {
         }
 
         private void DrawEdge(Graphics g, Edge e) {
-            using var pen = new Pen(Color.FromArgb(170, 170, 190), 2);
+            bool isSelected = selectedWire == e;
+            var color = isSelected ? Color.FromArgb(255, 220, 120) : Color.FromArgb(170, 170, 190);
+            var width = isSelected ? 3f : 2f;
+            using var pen = new Pen(color, width);
             DrawCurve(g, e.FromPort.ConnectionPoint, e.ToPort.ConnectionPoint, pen);
         }
 

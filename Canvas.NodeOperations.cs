@@ -145,6 +145,51 @@ namespace BlockCanvas {
         }
         private Edge? FindEdge(Port from, Port to) => current.Edges.FirstOrDefault(ed => ed.FromPort == from && ed.ToPort == to);
 
+        private Edge? FindWireAt(PointF worldPoint) {
+            const float tolerance = 8f; // pixels
+            
+            foreach (var edge in current.Edges) {
+                var fromPt = edge.FromPort.ConnectionPoint;
+                var toPt = edge.ToPort.ConnectionPoint;
+                
+                // Calculate distance from point to bezier curve
+                if (DistanceToWire(worldPoint, fromPt, toPt) <= tolerance) {
+                    return edge;
+                }
+            }
+            return null;
+        }
+        
+        private float DistanceToWire(PointF point, PointF from, PointF to) {
+            // Simplified distance calculation for bezier curve
+            // Create control points for the bezier
+            float dx = Math.Abs(to.X - from.X) * 0.5f + 24f;
+            var c1 = new PointF(from.X + dx, from.Y);
+            var c2 = new PointF(to.X - dx, to.Y);
+            
+            // Sample points along the bezier curve and find minimum distance
+            float minDistance = float.MaxValue;
+            for (float t = 0; t <= 1; t += 0.05f) {
+                var bezierPoint = GetBezierPoint(from, c1, c2, to, t);
+                var dist = (float)Math.Sqrt(Math.Pow(point.X - bezierPoint.X, 2) + Math.Pow(point.Y - bezierPoint.Y, 2));
+                minDistance = Math.Min(minDistance, dist);
+            }
+            return minDistance;
+        }
+        
+        private PointF GetBezierPoint(PointF p0, PointF p1, PointF p2, PointF p3, float t) {
+            var u = 1 - t;
+            var tt = t * t;
+            var uu = u * u;
+            var uuu = uu * u;
+            var ttt = tt * t;
+            
+            var x = uuu * p0.X + 3 * uu * t * p1.X + 3 * u * tt * p2.X + ttt * p3.X;
+            var y = uuu * p0.Y + 3 * uu * t * p1.Y + 3 * u * tt * p2.Y + ttt * p3.Y;
+            
+            return new PointF(x, y);
+        }
+
         private List<Node> GetTrail() {
             var trail = new List<Node>();
             var g = current;

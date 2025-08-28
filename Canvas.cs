@@ -19,6 +19,7 @@ namespace BlockCanvas {
         private bool draggingSelection = false;
         private PointF dragStartMouseWorld;
         private readonly Dictionary<Node, PointF> dragStartPos = new();
+        private Edge? selectedWire = null;
 
         // Wire-dragging
         private Port? connectStartPort;
@@ -75,6 +76,7 @@ namespace BlockCanvas {
             root = new Graph();
             current = root;
             selection.Clear();
+            selectedWire = null;
             connectStartPort = null;
             CreatePermanentBlocks();
             Invalidate();
@@ -92,6 +94,7 @@ namespace BlockCanvas {
             root = FromDto(dto.Graph, parent: null, owner: null);
             current = root;
             selection.Clear();
+            selectedWire = null;
             connectStartPort = null;
             CreatePermanentBlocks(); // Ensure START and END blocks exist
             Invalidate();

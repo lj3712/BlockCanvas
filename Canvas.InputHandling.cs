@@ -35,14 +35,22 @@ namespace BlockCanvas {
                 e.Handled = true;
                 return;
             }
-            if (e.KeyCode == Keys.Delete && selection.Count > 0) {
-                foreach (var node in selection.ToList()) {
-                    if (node.IsProxy || node.IsPermanent) continue;
-                    current.Edges.RemoveAll(ed => ed.FromNode == node || ed.ToNode == node);
-                    current.Nodes.Remove(node);
+            if (e.KeyCode == Keys.Delete) {
+                if (selectedWire != null) {
+                    // Delete selected wire
+                    current.Edges.Remove(selectedWire);
+                    selectedWire = null;
+                    Invalidate();
+                } else if (selection.Count > 0) {
+                    // Delete selected nodes
+                    foreach (var node in selection.ToList()) {
+                        if (node.IsProxy || node.IsPermanent) continue;
+                        current.Edges.RemoveAll(ed => ed.FromNode == node || ed.ToNode == node);
+                        current.Nodes.Remove(node);
+                    }
+                    selection.Clear();
+                    Invalidate();
                 }
-                selection.Clear();
-                Invalidate();
             }
             if (e.KeyCode == Keys.Escape) {
                 if (panning) { panning = false; Invalidate(); return; }
@@ -98,6 +106,8 @@ namespace BlockCanvas {
                 }
 
                 if (hitNode != null && hitNode.HitTitleBar(lastMouseWorld)) {
+                    selectedWire = null; // Clear wire selection
+                    
                     // selection handling
                     if ((ModifierKeys & Keys.Control) == Keys.Control) {
                         if (!selection.Add(hitNode)) selection.Remove(hitNode);
@@ -115,6 +125,18 @@ namespace BlockCanvas {
                     Invalidate();
                 }
                 else {
+                    // Check for wire selection first
+                    Edge? hitWire = FindWireAt(lastMouseWorld);
+                    if (hitWire != null) {
+                        selectedWire = hitWire;
+                        selection.Clear(); // Clear node selection when selecting wire
+                        Invalidate();
+                        return;
+                    }
+                    
+                    // Clear wire selection when clicking elsewhere
+                    selectedWire = null;
+                    
                     // Clicking blank or node body: select single (unless Ctrl toggling)
                     if ((ModifierKeys & Keys.Control) == Keys.Control) {
                         if (hitNode != null) {
@@ -131,6 +153,26 @@ namespace BlockCanvas {
 
             if (e.Button == MouseButtons.Right) {
                 // Context menus
+                Edge? hitWire = FindWireAt(lastMouseWorld);
+                
+                if (hitWire != null) {
+                    selectedWire = hitWire;
+                    selection.Clear(); // Clear node selection when selecting wire
+                    
+                    var menu = new ContextMenuStrip();
+                    menu.Items.Add("Delete Wire", null, (_, __) => {
+                        if (selectedWire != null) {
+                            current.Edges.Remove(selectedWire);
+                            selectedWire = null;
+                            Invalidate();
+                        }
+                    });
+                    
+                    menu.Show(this, e.Location);
+                    Invalidate();
+                    return;
+                }
+                
                 if (hitPort != null) {
                     var menu = new ContextMenuStrip();
 
