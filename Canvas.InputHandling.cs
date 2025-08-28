@@ -205,9 +205,9 @@ namespace BlockCanvas {
                     var addInputItem = new ToolStripMenuItem("Add Input Port", null, (_, __) => AddInputPort(hitNode));
                     var addOutputItem = new ToolStripMenuItem("Add Output Port", null, (_, __) => AddOutputPort(hitNode));
                     
-                    // Disable inappropriate port operations for START/END/CONST blocks
-                    if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Const) addInputItem.Enabled = false;
-                    if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Const) addOutputItem.Enabled = false;
+                    // Disable inappropriate port operations for START/END blocks
+                    if (hitNode.Type == NodeType.Start) addInputItem.Enabled = false;
+                    if (hitNode.Type == NodeType.End) addOutputItem.Enabled = false;
                     
                     menu.Items.Add(addInputItem);
                     menu.Items.Add(addOutputItem);

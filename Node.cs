@@ -48,7 +48,8 @@ namespace BlockCanvas {
                     // END blocks have infinite input ports, start with one
                     Inputs.Add(new Port(this, PortSide.Input, "In1", "Integer"));
                 } else if (Type == NodeType.Const) {
-                    // CONST blocks have no inputs, just one output
+                    // CONST blocks need an input to trigger processing and one output for the constant value
+                    Inputs.Add(new Port(this, PortSide.Input, "Trigger", "Integer"));
                     Outputs.Add(new Port(this, PortSide.Output, "Value", "Integer"));
                 } else {
                     // Regular nodes get default ports
