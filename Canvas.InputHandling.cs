@@ -256,6 +256,10 @@ namespace BlockCanvas {
 
                     menu.Items.Add("Add Block Here", null, (_, __) => AddAt("Block"));
 
+                    // Primitives submenu
+                    var primitivesMenu = new ToolStripMenuItem("Primitives");
+                    menu.Items.Add(primitivesMenu);
+
                     if (selection.Count > 0 && selection.Any(n => !n.IsProxy)) {
                         menu.Items.Add(new ToolStripSeparator());
                         menu.Items.Add("Group Selected into Block…", null, (_, __) => GroupSelectionIntoBlock());
