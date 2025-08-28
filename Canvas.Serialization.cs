@@ -27,6 +27,7 @@ namespace BlockCanvas {
                     IsProxy = n.IsProxy,
                     ProxyIsInlet = n.ProxyIsInlet,
                     ProxyIndex = n.ProxyIndex,
+                    Type = n.Type.ToString(),
                     Inputs = n.Inputs.Select(p => new PortDef { Name = p.Name, Type = p.TypeName }).ToList(),
                     Outputs = n.Outputs.Select(p => new PortDef { Name = p.Name, Type = p.TypeName }).ToList(),
                     Inner = n.Inner != null ? ToDto(n.Inner) : null
@@ -48,7 +49,8 @@ namespace BlockCanvas {
             var idMap = new Dictionary<string, Node>();
 
             foreach (var nDto in dto.Nodes) {
-                var n = new Node(nDto.Title, new PointF(nDto.X, nDto.Y), createDefaultPorts: false) {
+                var nodeType = Enum.TryParse<NodeType>(nDto.Type, out var parsedType) ? parsedType : NodeType.Regular;
+                var n = new Node(nDto.Title, new PointF(nDto.X, nDto.Y), createDefaultPorts: false, nodeType) {
                     Id = string.IsNullOrWhiteSpace(nDto.Id) ? Guid.NewGuid().ToString("N") : nDto.Id,
                     IsProxy = nDto.IsProxy,
                     ProxyIsInlet = nDto.ProxyIsInlet,

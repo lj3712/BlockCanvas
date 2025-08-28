@@ -191,8 +191,15 @@ namespace BlockCanvas {
 
 
                     menu.Items.Add(new ToolStripSeparator());
-                    menu.Items.Add("Add Input Port", null, (_, __) => AddInputPort(hitNode));
-                    menu.Items.Add("Add Output Port", null, (_, __) => AddOutputPort(hitNode));
+                    var addInputItem = new ToolStripMenuItem("Add Input Port", null, (_, __) => AddInputPort(hitNode));
+                    var addOutputItem = new ToolStripMenuItem("Add Output Port", null, (_, __) => AddOutputPort(hitNode));
+                    
+                    // Disable inappropriate port operations for START/END blocks
+                    if (hitNode.Type == NodeType.Start) addInputItem.Enabled = false;
+                    if (hitNode.Type == NodeType.End) addOutputItem.Enabled = false;
+                    
+                    menu.Items.Add(addInputItem);
+                    menu.Items.Add(addOutputItem);
 
                     var rmIn = new ToolStripMenuItem("Remove Input Port");
                     for (int i = 0; i < hitNode.Inputs.Count; i++) {
@@ -229,14 +236,16 @@ namespace BlockCanvas {
                     // Blank-canvas context menu (no demo entries)
                     var menu = new ContextMenuStrip();
 
-                    void AddAt(string title) {
+                    void AddAt(string title, NodeType nodeType = NodeType.Regular) {
                         var world = ScreenToWorld(e.Location);
                         var pos = new PointF(world.X - 30, world.Y - 16);
-                        var n = new Node(title, pos, createDefaultPorts: false);
+                        var n = new Node(title, pos, createDefaultPorts: true, nodeType);
                         AddNode(n);
                     }
 
                     menu.Items.Add("Add Block Here", null, (_, __) => AddAt("Block"));
+                    menu.Items.Add("Add START Block", null, (_, __) => AddAt("START", NodeType.Start));
+                    menu.Items.Add("Add END Block", null, (_, __) => AddAt("END", NodeType.End));
 
                     if (selection.Count > 0 && selection.Any(n => !n.IsProxy)) {
                         menu.Items.Add(new ToolStripSeparator());
