@@ -19,7 +19,14 @@ namespace BlockCanvas {
             // Double-click a node => dive in (world coords)
             var world = ScreenToWorld(e.Location);
             Node? hitNode = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(world));
-            if (hitNode != null) ZoomInto(hitNode);
+            if (hitNode != null) {
+                // Don't allow zooming into START and END blocks
+                if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End) {
+                    System.Media.SystemSounds.Beep.Play();
+                    return;
+                }
+                ZoomInto(hitNode);
+            }
         }
 
         private void OnKeyDown(object? sender, KeyEventArgs e) {
