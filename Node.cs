@@ -9,6 +9,11 @@ using System.Text.Json.Serialization;
 using System.Windows.Forms;
 
 namespace BlockCanvas {
+    public enum NodeType {
+        Regular,
+        Start,
+        End
+    }
     public sealed class Node {
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public string Title { get; set; }
@@ -23,20 +28,46 @@ namespace BlockCanvas {
         public bool ProxyIsInlet = false;
         public int ProxyIndex = 0;
         public float TitleH = 28f; // dynamic title bar height (min 28)
+        public NodeType Type { get; set; } = NodeType.Regular;
 
 
 
-        public Node(string title, PointF pos, bool createDefaultPorts = true) {
+        public Node(string title, PointF pos, bool createDefaultPorts = true, NodeType nodeType = NodeType.Regular) {
             Title = title;
             Position = pos;
+            Type = nodeType;
             if (createDefaultPorts) {
-                // default fundamentals; you can change "Integer" if you prefer
-                Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));
-                Outputs.Add(new Port(this, PortSide.Output, "Out", "Integer"));
+                // Configure ports based on node type
+                if (Type == NodeType.Start) {
+                    // START blocks have infinite output ports, start with one
+                    Outputs.Add(new Port(this, PortSide.Output, "Out1", "Integer"));
+                } else if (Type == NodeType.End) {
+                    // END blocks have infinite input ports, start with one
+                    Inputs.Add(new Port(this, PortSide.Input, "In1", "Integer"));
+                } else {
+                    // Regular nodes get default ports
+                    Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Integer"));
+                }
             }
         }
 
         public RectangleF Bounds => new RectangleF(Position, Size);
+
+        // Methods for managing infinite ports on START and END blocks
+        public void AddOutputPortIfNeeded() {
+            if (Type == NodeType.Start) {
+                string newName = $"Out{Outputs.Count + 1}";
+                Outputs.Add(new Port(this, PortSide.Output, newName, "Integer"));
+            }
+        }
+
+        public void AddInputPortIfNeeded() {
+            if (Type == NodeType.End) {
+                string newName = $"In{Inputs.Count + 1}";
+                Inputs.Add(new Port(this, PortSide.Input, newName, "Integer"));
+            }
+        }
 
 
         public void LayoutPorts() {

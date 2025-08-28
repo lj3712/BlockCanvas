@@ -37,6 +37,8 @@ namespace BlockCanvas {
         [JsonPropertyName("proxyIsInlet")] public bool ProxyIsInlet { get; set; }
         [JsonPropertyName("proxyIndex")] public int ProxyIndex { get; set; }
 
+        [JsonPropertyName("type")] public string Type { get; set; } = "Regular";
+
         [JsonPropertyName("inputs")] public List<PortDef> Inputs { get; set; } = new();
         [JsonPropertyName("outputs")] public List<PortDef> Outputs { get; set; } = new();
 

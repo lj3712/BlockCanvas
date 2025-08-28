@@ -155,14 +155,39 @@ namespace BlockCanvas {
         private int CurrentLevel() => GetTrail().Count;
 
         private void AddInputPort(Node node, string? name = null, string typeName = "Integer") {
-            name ??= UniquePortName(node.Inputs.Select(p => p.Name), "In");
+            // Handle special cases for START and END blocks
+            if (node.Type == NodeType.Start) {
+                System.Media.SystemSounds.Beep.Play(); // START blocks don't have input ports
+                return;
+            }
+            
+            if (node.Type == NodeType.End) {
+                // For END blocks, use automatic numbering
+                name = $"In{node.Inputs.Count + 1}";
+            } else {
+                name ??= UniquePortName(node.Inputs.Select(p => p.Name), "In");
+            }
+            
             node.Inputs.Add(new Port(node, PortSide.Input, name, typeName));
             AutoSizeForPorts(node, allowShrink: false);
             EnsureProxiesMatch(node);
             Invalidate();
         }
+        
         private void AddOutputPort(Node node, string? name = null, string typeName = "Integer") {
-            name ??= UniquePortName(node.Outputs.Select(p => p.Name), "Out");
+            // Handle special cases for START and END blocks
+            if (node.Type == NodeType.End) {
+                System.Media.SystemSounds.Beep.Play(); // END blocks don't have output ports
+                return;
+            }
+            
+            if (node.Type == NodeType.Start) {
+                // For START blocks, use automatic numbering
+                name = $"Out{node.Outputs.Count + 1}";
+            } else {
+                name ??= UniquePortName(node.Outputs.Select(p => p.Name), "Out");
+            }
+            
             node.Outputs.Add(new Port(node, PortSide.Output, name, typeName));
             AutoSizeForPorts(node, allowShrink: false);
             EnsureProxiesMatch(node);
@@ -173,6 +198,17 @@ namespace BlockCanvas {
         private void DeletePort(Port port) {
             if (port.Owner.IsProxy) return;
             var node = port.Owner;
+            
+            // Special handling for START and END blocks - prevent deletion of last port
+            if (node.Type == NodeType.Start && node.Outputs.Count <= 1) {
+                System.Media.SystemSounds.Beep.Play(); // Can't delete last output port from START block
+                return;
+            }
+            if (node.Type == NodeType.End && node.Inputs.Count <= 1) {
+                System.Media.SystemSounds.Beep.Play(); // Can't delete last input port from END block
+                return;
+            }
+            
             current.Edges.RemoveAll(ed => ed.FromPort == port || ed.ToPort == port);
             if (port.Side == PortSide.Input) node.Inputs.Remove(port);
             else node.Outputs.Remove(port);
@@ -389,7 +425,7 @@ namespace BlockCanvas {
 
             // 1) Clone nodes (shallow: geometry/ports/proxy flags)
             foreach (var n in src.Nodes) {
-                var cn = new Node(n.Title, n.Position, createDefaultPorts: false) {
+                var cn = new Node(n.Title, n.Position, createDefaultPorts: false, n.Type) {
                     Size = n.Size,
                     IsProxy = n.IsProxy,
                     ProxyIsInlet = n.ProxyIsInlet,
@@ -427,7 +463,7 @@ namespace BlockCanvas {
         private void DuplicateNode(Node src) {
             if (src.IsProxy) { System.Media.SystemSounds.Beep.Play(); return; }
 
-            var dup = new Node(src.Title + " Copy", new PointF(src.Position.X + 30, src.Position.Y + 30), createDefaultPorts: false) {
+            var dup = new Node(src.Title + " Copy", new PointF(src.Position.X + 30, src.Position.Y + 30), createDefaultPorts: false, src.Type) {
                 Size = src.Size
             };
             foreach (var p in src.Inputs) dup.Inputs.Add(new Port(dup, PortSide.Input, p.Name, p.TypeName));

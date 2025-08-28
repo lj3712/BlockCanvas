@@ -139,18 +139,55 @@ namespace BlockCanvas {
 
             using var path = RoundedRect(rect, radius);
             var selected = selection.Contains(n);
-            using var fill = new LinearGradientBrush(rect, Color.FromArgb(58, 62, 70), Color.FromArgb(44, 47, 53), LinearGradientMode.Vertical);
-            using var border = new Pen(selected ? Color.FromArgb(120, 190, 255) : Color.FromArgb(85, 90, 100), selected ? 2.5f : 1.5f);
+            
+            // Special colors for START and END blocks
+            LinearGradientBrush fill;
+            Pen border;
+            
+            switch (n.Type) {
+                case NodeType.Start:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(58, 120, 58), Color.FromArgb(44, 80, 44), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(120, 255, 120) : Color.FromArgb(85, 150, 85), selected ? 2.5f : 1.5f);
+                    break;
+                case NodeType.End:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(120, 58, 58), Color.FromArgb(80, 44, 44), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(255, 120, 120) : Color.FromArgb(150, 85, 85), selected ? 2.5f : 1.5f);
+                    break;
+                default:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(58, 62, 70), Color.FromArgb(44, 47, 53), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(120, 190, 255) : Color.FromArgb(85, 90, 100), selected ? 2.5f : 1.5f);
+                    break;
+            }
 
             g.FillPath(fill, path);
             g.DrawPath(border, path);
+            fill.Dispose();
+            border.Dispose();
 
             // Title bar
             var titleRect = new RectangleF(rect.X, rect.Y, rect.Width, n.TitleH);
-            using var titleBrush = new SolidBrush(Color.FromArgb(70, 74, 82));
-            using var titleBorder = new Pen(Color.FromArgb(90, 95, 105), 1);
+            SolidBrush titleBrush;
+            Pen titleBorder;
+            
+            switch (n.Type) {
+                case NodeType.Start:
+                    titleBrush = new SolidBrush(Color.FromArgb(70, 120, 70));
+                    titleBorder = new Pen(Color.FromArgb(90, 150, 90), 1);
+                    break;
+                case NodeType.End:
+                    titleBrush = new SolidBrush(Color.FromArgb(120, 70, 70));
+                    titleBorder = new Pen(Color.FromArgb(150, 90, 90), 1);
+                    break;
+                default:
+                    titleBrush = new SolidBrush(Color.FromArgb(70, 74, 82));
+                    titleBorder = new Pen(Color.FromArgb(90, 95, 105), 1);
+                    break;
+            }
+            
             g.FillRectangle(titleBrush, titleRect);
             g.DrawLine(titleBorder, titleRect.Left, titleRect.Bottom, titleRect.Right, titleRect.Bottom);
+            titleBrush.Dispose();
+            titleBorder.Dispose();
 
             using var textBrush = new SolidBrush(Color.White);
             var sfTitle = new StringFormat {
