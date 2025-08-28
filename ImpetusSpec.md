@@ -36,3 +36,9 @@ Impetus is a visual programming language that is, in essence, a hierarchical flo
 19) Types can be constructed and deconstructed from/into their constituent members by use of a "marshaller". The marshaller has any number of input ports and one output port, representing the combined data of all inputs. The marshaller can also do the reverse (demarshalling), with one input port and any number of output ports. In diagrams, the marshaller is represented by a vertical rectangular oval. The ports of a marshaller block may be reordered to determine the precise format of the marshalled/demarshalled data.
 20) Marshallers and demarshallers can be constructed of marshallers and demarshallers, but no processing logic is permitted inside.
 	
+## Language Primitives
+Data
+
+CONST - Outputs a constant value (configured at design time)
+IDENTITY - Passes input directly to output (useful for wire routing)
+DUP - Takes one input, produces multiple identical outputs
