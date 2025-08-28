@@ -373,6 +373,31 @@ namespace BlockCanvas {
             _ => Cursors.Default
         };
 
+        // Port resize handle detection
+        private Port? GetPortResizeHandle(PointF world, out bool isLeft) {
+            isLeft = false;
+            foreach (var node in current.Nodes.Where(n => !n.IsProxy)) {
+                foreach (var port in node.Inputs.Concat(node.Outputs)) {
+                    var rect = port.VisualRect;
+                    const float handleWidth = 6f;
+                    
+                    // Left edge handle for input ports, right edge handle for output ports
+                    RectangleF leftHandle = new RectangleF(rect.Left - handleWidth/2, rect.Top, handleWidth, rect.Height);
+                    RectangleF rightHandle = new RectangleF(rect.Right - handleWidth/2, rect.Top, handleWidth, rect.Height);
+                    
+                    if (port.Side == PortSide.Input && leftHandle.Contains(world)) {
+                        isLeft = true;
+                        return port;
+                    }
+                    if (port.Side == PortSide.Output && rightHandle.Contains(world)) {
+                        isLeft = false;
+                        return port;
+                    }
+                }
+            }
+            return null;
+        }
+
         private void ApplyResize(Node n, ResizeHandle h, float dx, float dy) {
             var pos = resizeStartPos;
             var size = resizeStartSize;

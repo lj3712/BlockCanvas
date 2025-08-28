@@ -66,6 +66,17 @@ namespace BlockCanvas {
             Node? hitNode = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(lastMouseWorld));
 
             if (e.Button == MouseButtons.Left) {
+                // Check for port resize handles first
+                var portResizePort = GetPortResizeHandle(lastMouseWorld, out bool isLeft);
+                if (portResizePort != null) {
+                    resizingPort = portResizePort;
+                    resizingPortLeft = isLeft;
+                    portResizeStartMouseWorld = lastMouseWorld;
+                    portResizeStartWidth = portResizePort.CustomWidth;
+                    Invalidate();
+                    return;
+                }
+                
                 // world coords already in lastMouseWorld
                 Node? hitNodeForResize = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(lastMouseWorld));
                 if (hitNodeForResize != null) {
@@ -131,6 +142,18 @@ namespace BlockCanvas {
                         }
                     });
                     menu.Items.Add(miRename);
+
+                    var miSetWidth = new ToolStripMenuItem("Set Width…", null, (_, __) => {
+                        string? s = Microsoft.VisualBasic.Interaction.InputBox("Port width:", "Set Port Width", hitPort.CustomWidth.ToString());
+                        if (!string.IsNullOrWhiteSpace(s) && float.TryParse(s, out float width)) {
+                            const float minWidth = 60f;
+                            const float maxWidth = 300f;
+                            hitPort.CustomWidth = Math.Max(minWidth, Math.Min(maxWidth, width));
+                            hitPort.Owner.LayoutPorts();
+                            Invalidate();
+                        }
+                    });
+                    menu.Items.Add(miSetWidth);
 
                     var miDelete = new ToolStripMenuItem("Delete Port", null, (_, __) => DeletePort(hitPort)) { Enabled = !hitPort.Owner.IsProxy };
                     menu.Items.Add(miDelete);
@@ -298,7 +321,29 @@ namespace BlockCanvas {
 
         private void OnMouseMove(object? sender, MouseEventArgs e) {
             lastMouseWorld = ScreenToWorld(e.Location);
-            // Resizing?
+            
+            // Port resizing?
+            if (resizingPort != null) {
+                var dx = lastMouseWorld.X - portResizeStartMouseWorld.X;
+                const float minWidth = 60f;
+                const float maxWidth = 300f;
+                
+                float newWidth;
+                if (resizingPort.Side == PortSide.Input) {
+                    // For input ports, dragging left decreases width, right increases
+                    newWidth = resizingPortLeft ? portResizeStartWidth - dx : portResizeStartWidth + dx;
+                } else {
+                    // For output ports, dragging left decreases width, right increases  
+                    newWidth = resizingPortLeft ? portResizeStartWidth - dx : portResizeStartWidth + dx;
+                }
+                
+                resizingPort.CustomWidth = Math.Max(minWidth, Math.Min(maxWidth, newWidth));
+                resizingPort.Owner.LayoutPorts();
+                Invalidate();
+                return;
+            }
+            
+            // Node resizing?
             if (resizingNode != null && activeHandle != ResizeHandle.None) {
                 var dx = lastMouseWorld.X - resizeStartMouseWorld.X;
                 var dy = lastMouseWorld.Y - resizeStartMouseWorld.Y;
@@ -308,13 +353,18 @@ namespace BlockCanvas {
             }
 
             // Not resizing: update cursor if hovering a handle
-            Node? hoverNode = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(lastMouseWorld));
-            if (hoverNode != null) {
-                var h = GetResizeHandle(hoverNode, lastMouseWorld);
-                Cursor = CursorForHandle(h);
-            }
-            else if (!panning) {
-                Cursor = Cursors.Default;
+            var portResizeHover = GetPortResizeHandle(lastMouseWorld, out _);
+            if (portResizeHover != null) {
+                Cursor = Cursors.SizeWE;
+            } else {
+                Node? hoverNode = current.Nodes.LastOrDefault(n => !n.IsProxy && n.HitBody(lastMouseWorld));
+                if (hoverNode != null) {
+                    var h = GetResizeHandle(hoverNode, lastMouseWorld);
+                    Cursor = CursorForHandle(h);
+                }
+                else if (!panning) {
+                    Cursor = Cursors.Default;
+                }
             }
 
             if (panning) {
@@ -346,6 +396,11 @@ namespace BlockCanvas {
 
             if (e.Button == MouseButtons.Left) {
                 draggingSelection = false;
+                if (resizingPort != null) {
+                    resizingPort = null;
+                    Invalidate();
+                    return;
+                }
                 if (resizingNode != null) {
                     resizingNode = null;
                     activeHandle = ResizeHandle.None;

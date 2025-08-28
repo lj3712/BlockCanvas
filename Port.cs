@@ -20,6 +20,7 @@ namespace BlockCanvas {
         public float CornerRadius = 6f;
         public SizeF VisualSize = new SizeF(108, 26);
         public PointF ConnectionPoint;
+        public float CustomWidth = 108f; // Customizable port width
 
         public Port(Node owner, PortSide side, string name, string typeName = "Integer") { Owner = owner; Side = side; Name = name; TypeName = TypeUtil.Normalize(typeName); }
 

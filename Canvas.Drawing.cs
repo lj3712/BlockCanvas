@@ -213,8 +213,10 @@ namespace BlockCanvas {
             foreach (var p in n.Inputs) DrawPort(g, p, isInput: true);
             foreach (var p in n.Outputs) DrawPort(g, p, isInput: false);
 
-            if (selection.Contains(n))
+            if (selection.Contains(n)) {
                 DrawResizeHandles(g, n);
+                DrawPortResizeHandles(g, n);
+            }
         }
 
         private void DrawPort(Graphics g, Port port, bool isInput) {
@@ -302,6 +304,29 @@ namespace BlockCanvas {
             foreach (var rect in GetHandleRects(n).Values) {
                 g.FillRectangle(br, rect);
                 g.DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
+            }
+        }
+
+        private void DrawPortResizeHandles(Graphics g, Node n) {
+            if (n.IsProxy) return;
+            using var br = new SolidBrush(Color.LightBlue);
+            using var pen = new Pen(Color.Blue, 1f);
+            const float handleWidth = 6f;
+            
+            foreach (var port in n.Inputs.Concat(n.Outputs)) {
+                var rect = port.VisualRect;
+                RectangleF handle;
+                
+                if (port.Side == PortSide.Input) {
+                    // Left edge handle for input ports
+                    handle = new RectangleF(rect.Left - handleWidth/2, rect.Top + 2, handleWidth, rect.Height - 4);
+                } else {
+                    // Right edge handle for output ports
+                    handle = new RectangleF(rect.Right - handleWidth/2, rect.Top + 2, handleWidth, rect.Height - 4);
+                }
+                
+                g.FillRectangle(br, handle);
+                g.DrawRectangle(pen, handle.X, handle.Y, handle.Width, handle.Height);
             }
         }
 

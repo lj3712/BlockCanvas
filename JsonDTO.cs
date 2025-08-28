@@ -61,6 +61,7 @@ namespace BlockCanvas {
     public sealed class PortDef {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
         [JsonPropertyName("type")] public string Type { get; set; } = "Integer";
+        [JsonPropertyName("width")] public float Width { get; set; } = 108f;
     }
 
     // Accepts either {"name":"In","type":"Int"} OR just "In" (legacy)
@@ -68,11 +69,12 @@ namespace BlockCanvas {
         public override PortDef? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
             if (reader.TokenType == JsonTokenType.String) {
                 var name = reader.GetString() ?? "";
-                return new PortDef { Name = name, Type = "Integer" };
+                return new PortDef { Name = name, Type = "Integer", Width = 108f };
             }
             if (reader.TokenType == JsonTokenType.StartObject) {
                 string? name = null;
                 string typeName = "Integer";
+                float width = 108f;
 
                 while (reader.Read() && reader.TokenType != JsonTokenType.EndObject) {
                     if (reader.TokenType != JsonTokenType.PropertyName) continue;
@@ -81,9 +83,10 @@ namespace BlockCanvas {
                     switch (prop) {
                         case "name": name = reader.GetString(); break;
                         case "type": typeName = TypeUtil.Normalize(reader.GetString()); break;
+                        case "width": width = reader.GetSingle(); break;
                     }
                 }
-                return new PortDef { Name = name ?? "", Type = typeName };
+                return new PortDef { Name = name ?? "", Type = typeName, Width = width };
             }
             throw new JsonException("Invalid PortDef");
         }
@@ -92,6 +95,7 @@ namespace BlockCanvas {
             writer.WriteStartObject();
             writer.WriteString("name", value.Name);
             writer.WriteString("type", TypeUtil.Normalize(value.Type));
+            writer.WriteNumber("width", value.Width);
             writer.WriteEndObject();
         }
     }

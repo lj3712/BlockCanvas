@@ -37,6 +37,12 @@ namespace BlockCanvas {
         private SizeF resizeStartSize;
         private const float MinNodeW = 140f;
         private const float MinNodeH = 80f;
+        
+        // Port resizing
+        private Port? resizingPort = null;
+        private bool resizingPortLeft = false;
+        private PointF portResizeStartMouseWorld;
+        private float portResizeStartWidth;
         private readonly Font titleFont = new Font("Segoe UI", 9f, FontStyle.Bold);
 
 

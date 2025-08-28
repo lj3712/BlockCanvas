@@ -99,6 +99,7 @@ namespace BlockCanvas {
             for (int i = 0; i < inCount; i++) {
                 var p = Inputs[i];
                 float y = YAtSlot(i, inCount);
+                p.VisualSize = new SizeF(p.CustomWidth, p.VisualSize.Height); // Use custom width
                 var r = new RectangleF(Position.X - gap - p.VisualSize.Width, y - p.VisualSize.Height / 2f, p.VisualSize.Width, p.VisualSize.Height);
                 p.VisualRect = r;
                 p.ConnectionPoint = new PointF(r.Left - p.ArrowWidth, y);
@@ -106,6 +107,7 @@ namespace BlockCanvas {
             for (int i = 0; i < outCount; i++) {
                 var p = Outputs[i];
                 float y = YAtSlot(i, outCount);
+                p.VisualSize = new SizeF(p.CustomWidth, p.VisualSize.Height); // Use custom width
                 var r = new RectangleF(Position.X + Size.Width + gap, y - p.VisualSize.Height / 2f, p.VisualSize.Width, p.VisualSize.Height);
                 p.VisualRect = r;
                 p.ConnectionPoint = new PointF(r.Right + p.ArrowWidth, y);
