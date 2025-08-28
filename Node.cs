@@ -14,7 +14,12 @@ namespace BlockCanvas {
         Start,
         End,
         Const,
-        Decision
+        Decision,
+        And,
+        Or,
+        Not,
+        Xor,
+        Add
     }
     public sealed class Node {
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -33,6 +38,7 @@ namespace BlockCanvas {
         public NodeType Type { get; set; } = NodeType.Regular;
         public bool IsPermanent = false; // Cannot be deleted
         public string ConstValue { get; set; } = "0"; // Value for CONST blocks
+        public string AddDataType { get; set; } = "Integer"; // Current data type for ADD blocks
 
 
 
@@ -43,20 +49,46 @@ namespace BlockCanvas {
             if (createDefaultPorts) {
                 // Configure ports based on node type
                 if (Type == NodeType.Start) {
-                    // START blocks have infinite output ports, start with one
-                    Outputs.Add(new Port(this, PortSide.Output, "Out1", "Integer"));
+                    // START blocks have infinite output ports, start with one - outputs bits
+                    Outputs.Add(new Port(this, PortSide.Output, "Out1", "Bit"));
                 } else if (Type == NodeType.End) {
-                    // END blocks have infinite input ports, start with one
-                    Inputs.Add(new Port(this, PortSide.Input, "In1", "Integer"));
+                    // END blocks have infinite input ports, start with one - can accept any type
+                    Inputs.Add(new Port(this, PortSide.Input, "In1", "Any"));
                 } else if (Type == NodeType.Const) {
-                    // CONST blocks need an input to trigger processing and one output for the constant value
-                    Inputs.Add(new Port(this, PortSide.Input, "Trigger", "Integer"));
+                    // CONST blocks need a single "Any" input trigger and one output for the constant value
+                    Inputs.Add(new Port(this, PortSide.Input, "Trigger", "Any"));
                     Outputs.Add(new Port(this, PortSide.Output, "Value", "Integer"));
                 } else if (Type == NodeType.Decision) {
                     // Decision blocks take one integer input and have TRUE/FALSE bit outputs
                     Inputs.Add(new Port(this, PortSide.Input, "Input", "Integer"));
                     Outputs.Add(new Port(this, PortSide.Output, "FALSE", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "TRUE", "Bit"));
+                } else if (Type == NodeType.And) {
+                    // AND block takes two bit inputs and outputs one bit
+                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
+                } else if (Type == NodeType.Or) {
+                    // OR block takes two bit inputs and outputs one bit
+                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
+                } else if (Type == NodeType.Not) {
+                    // NOT block takes one bit input and outputs one bit
+                    Inputs.Add(new Port(this, PortSide.Input, "In", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
+                } else if (Type == NodeType.Xor) {
+                    // XOR block takes two bit inputs and outputs one bit
+                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
+                } else if (Type == NodeType.Add) {
+                    // ADD block takes two inputs of same type, outputs result + overflow/carry
+                    // Default to Integer, but can be changed to Float or Bit
+                    Inputs.Add(new Port(this, PortSide.Input, "A", "Integer"));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", "Integer"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Sum", "Integer"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Carry", "Bit"));
                 } else {
                     // Regular nodes get default ports
                     Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));
@@ -71,14 +103,33 @@ namespace BlockCanvas {
         public void AddOutputPortIfNeeded() {
             if (Type == NodeType.Start) {
                 string newName = $"Out{Outputs.Count + 1}";
-                Outputs.Add(new Port(this, PortSide.Output, newName, "Integer"));
+                Outputs.Add(new Port(this, PortSide.Output, newName, "Bit"));
             }
         }
 
         public void AddInputPortIfNeeded() {
             if (Type == NodeType.End) {
                 string newName = $"In{Inputs.Count + 1}";
-                Inputs.Add(new Port(this, PortSide.Input, newName, "Integer"));
+                Inputs.Add(new Port(this, PortSide.Input, newName, "Any"));
+            }
+        }
+
+        // Update ADD block ports when data type changes
+        public void UpdateAddPortTypes(string newDataType) {
+            if (Type != NodeType.Add) return;
+            
+            AddDataType = newDataType;
+            
+            // Update input ports to new type
+            if (Inputs.Count >= 2) {
+                Inputs[0].TypeName = newDataType; // A
+                Inputs[1].TypeName = newDataType; // B
+            }
+            
+            // Update Sum output to new type, Carry remains Bit
+            if (Outputs.Count >= 2) {
+                Outputs[0].TypeName = newDataType; // Sum
+                // Outputs[1] remains "Bit" for Carry/Overflow
             }
         }
 

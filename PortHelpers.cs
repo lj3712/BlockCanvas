@@ -12,7 +12,7 @@ namespace BlockCanvas {
     public enum PortSide { Input, Output }
 
     public static class TypeUtil {
-        public static readonly string[] Fundamentals = { "Integer", "Char", "Float", "Bit" };
+        public static readonly string[] Fundamentals = { "Integer", "Char", "Float", "Bit", "Any" };
 
         public static string Normalize(string? s) {
             if (string.IsNullOrWhiteSpace(s)) return "Integer";
@@ -25,7 +25,7 @@ namespace BlockCanvas {
                 "float" or "f32" => "Float",
                 "bool" or "boolean" or "bit" => "Bit",
                 "char" or "character" => "Char",
-                "any" => "Integer", // legacy files: default to Integer
+                "any" => "Any",
                 _ => s          // composite or custom, keep verbatim
             };
         }
@@ -35,17 +35,23 @@ namespace BlockCanvas {
             "Float" => "F32",
             "Bit" => "Bit",
             "Char" => "Char",
+            "Any" => "Any",
             _ => t // composite names already short/meaningful
         };
 
-        public static bool Compatible(string outT, string inT) =>
-            string.Equals(outT, inT, StringComparison.Ordinal);
+        public static bool Compatible(string outT, string inT) {
+            // "Any" type (used by END blocks) can accept any input
+            if (string.Equals(inT, "Any", StringComparison.Ordinal)) return true;
+            // Regular type compatibility check
+            return string.Equals(outT, inT, StringComparison.Ordinal);
+        }
 
         public static Color BaseColor(string t) => t switch {
             "Integer" => Color.FromArgb(255, 165, 90),
             "Float" => Color.FromArgb(90, 170, 255),
             "Bit" => Color.FromArgb(100, 200, 140),
             "Char" => Color.FromArgb(200, 120, 220),
+            "Any" => Color.FromArgb(180, 180, 180), // Gray for "Any" type
             _ => HashColor(t) // composite: stable pleasant color
         };
 

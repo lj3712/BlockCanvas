@@ -163,6 +163,17 @@ namespace BlockCanvas {
                     fill = new LinearGradientBrush(rect, Color.FromArgb(120, 120, 58), Color.FromArgb(80, 80, 44), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(255, 255, 120) : Color.FromArgb(150, 150, 85), selected ? 2.5f : 1.5f);
                     break;
+                case NodeType.And:
+                case NodeType.Or:
+                case NodeType.Not:
+                case NodeType.Xor:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(80, 58, 120), Color.FromArgb(60, 44, 80), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(160, 120, 255) : Color.FromArgb(120, 85, 150), selected ? 2.5f : 1.5f);
+                    break;
+                case NodeType.Add:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(58, 120, 80), Color.FromArgb(44, 80, 60), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(120, 255, 160) : Color.FromArgb(85, 150, 120), selected ? 2.5f : 1.5f);
+                    break;
                 default:
                     fill = new LinearGradientBrush(rect, Color.FromArgb(58, 62, 70), Color.FromArgb(44, 47, 53), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(120, 190, 255) : Color.FromArgb(85, 90, 100), selected ? 2.5f : 1.5f);
@@ -191,6 +202,17 @@ namespace BlockCanvas {
                 case NodeType.Const:
                     titleBrush = new SolidBrush(Color.FromArgb(120, 120, 70));
                     titleBorder = new Pen(Color.FromArgb(150, 150, 90), 1);
+                    break;
+                case NodeType.And:
+                case NodeType.Or:
+                case NodeType.Not:
+                case NodeType.Xor:
+                    titleBrush = new SolidBrush(Color.FromArgb(90, 70, 120));
+                    titleBorder = new Pen(Color.FromArgb(120, 90, 150), 1);
+                    break;
+                case NodeType.Add:
+                    titleBrush = new SolidBrush(Color.FromArgb(70, 120, 90));
+                    titleBorder = new Pen(Color.FromArgb(90, 150, 120), 1);
                     break;
                 default:
                     titleBrush = new SolidBrush(Color.FromArgb(70, 74, 82));

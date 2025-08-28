@@ -22,7 +22,10 @@ namespace BlockCanvas {
             if (hitNode != null) {
                 // Don't allow zooming into primitive blocks
                 if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End || 
-                    hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Decision) {
+                    hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Decision ||
+                    hitNode.Type == NodeType.And || hitNode.Type == NodeType.Or ||
+                    hitNode.Type == NodeType.Not || hitNode.Type == NodeType.Xor ||
+                    hitNode.Type == NodeType.Add) {
                     System.Media.SystemSounds.Beep.Play();
                     return;
                 }
@@ -273,8 +276,15 @@ namespace BlockCanvas {
                     var addOutputItem = new ToolStripMenuItem("Add Output Port", null, (_, __) => AddOutputPort(hitNode));
                     
                     // Disable inappropriate port operations for primitive blocks
-                    if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Decision) addInputItem.Enabled = false;
-                    if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Decision) addOutputItem.Enabled = false;
+                    // Disable port modifications for atomic primitives
+                    if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Decision ||
+                        hitNode.Type == NodeType.And || hitNode.Type == NodeType.Or ||
+                        hitNode.Type == NodeType.Not || hitNode.Type == NodeType.Xor ||
+                        hitNode.Type == NodeType.Add || hitNode.Type == NodeType.Const) addInputItem.Enabled = false;
+                    if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Decision ||
+                        hitNode.Type == NodeType.And || hitNode.Type == NodeType.Or ||
+                        hitNode.Type == NodeType.Not || hitNode.Type == NodeType.Xor ||
+                        hitNode.Type == NodeType.Add || hitNode.Type == NodeType.Const) addOutputItem.Enabled = false;
                     
                     menu.Items.Add(addInputItem);
                     menu.Items.Add(addOutputItem);
@@ -289,6 +299,25 @@ namespace BlockCanvas {
                                 Invalidate();
                             }
                         });
+                    }
+                    
+                    // Add ADD data type configuration option
+                    if (hitNode.Type == NodeType.Add) {
+                        menu.Items.Add(new ToolStripSeparator());
+                        var addTypeMenu = new ToolStripMenuItem("Data Type");
+                        
+                        string[] addTypes = { "Integer", "Float", "Bit" };
+                        foreach (string dataType in addTypes) {
+                            var item = new ToolStripMenuItem(dataType) { Checked = string.Equals(hitNode.AddDataType, dataType, StringComparison.Ordinal) };
+                            item.Click += (_, __) => {
+                                hitNode.UpdateAddPortTypes(dataType);
+                                hitNode.LayoutPorts();
+                                Invalidate();
+                            };
+                            addTypeMenu.DropDownItems.Add(item);
+                        }
+                        
+                        menu.Items.Add(addTypeMenu);
                     }
 
                     var rmIn = new ToolStripMenuItem("Remove Input Port");
@@ -347,6 +376,13 @@ namespace BlockCanvas {
                     
                     primitivesMenu.DropDownItems.Add("CONST", null, (_, __) => AddPrimitiveAt("CONST", NodeType.Const));
                     primitivesMenu.DropDownItems.Add("DECISION", null, (_, __) => AddPrimitiveAt("DECISION", NodeType.Decision));
+                    primitivesMenu.DropDownItems.Add(new ToolStripSeparator());
+                    primitivesMenu.DropDownItems.Add("ADD", null, (_, __) => AddPrimitiveAt("ADD", NodeType.Add));
+                    primitivesMenu.DropDownItems.Add(new ToolStripSeparator());
+                    primitivesMenu.DropDownItems.Add("AND", null, (_, __) => AddPrimitiveAt("AND", NodeType.And));
+                    primitivesMenu.DropDownItems.Add("OR", null, (_, __) => AddPrimitiveAt("OR", NodeType.Or));
+                    primitivesMenu.DropDownItems.Add("NOT", null, (_, __) => AddPrimitiveAt("NOT", NodeType.Not));
+                    primitivesMenu.DropDownItems.Add("XOR", null, (_, __) => AddPrimitiveAt("XOR", NodeType.Xor));
                     
                     menu.Items.Add(primitivesMenu);
 

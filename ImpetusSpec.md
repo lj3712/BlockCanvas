@@ -38,3 +38,7 @@ Impetus is a visual programming language that is, in essence, a hierarchical flo
 ## Language Primitives
 
 CONST - Outputs a constant value (configured at design time)
+AND - Logical AND of two bits
+OR - Logical OR of two bits
+NOT - Logical NOT of one bit
+XOR - Exclusive OR of two bits

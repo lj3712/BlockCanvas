@@ -201,14 +201,18 @@ namespace BlockCanvas {
 
         private void AddInputPort(Node node, string? name = null, string typeName = "Integer") {
             // Handle special cases for primitive blocks
-            if (node.Type == NodeType.Start || node.Type == NodeType.Decision) {
+            if (node.Type == NodeType.Start || node.Type == NodeType.Decision ||
+                node.Type == NodeType.And || node.Type == NodeType.Or ||
+                node.Type == NodeType.Not || node.Type == NodeType.Xor ||
+                node.Type == NodeType.Add || node.Type == NodeType.Const) {
                 System.Media.SystemSounds.Beep.Play(); // These blocks have fixed input port configurations
                 return;
             }
             
             if (node.Type == NodeType.End) {
-                // For END blocks, use automatic numbering
+                // For END blocks, use automatic numbering and accept any type
                 name = $"In{node.Inputs.Count + 1}";
+                typeName = "Any";
             } else {
                 name ??= UniquePortName(node.Inputs.Select(p => p.Name), "In");
             }
@@ -221,14 +225,18 @@ namespace BlockCanvas {
         
         private void AddOutputPort(Node node, string? name = null, string typeName = "Integer") {
             // Handle special cases for primitive blocks
-            if (node.Type == NodeType.End || node.Type == NodeType.Decision) {
+            if (node.Type == NodeType.End || node.Type == NodeType.Decision ||
+                node.Type == NodeType.And || node.Type == NodeType.Or ||
+                node.Type == NodeType.Not || node.Type == NodeType.Xor ||
+                node.Type == NodeType.Add || node.Type == NodeType.Const) {
                 System.Media.SystemSounds.Beep.Play(); // These blocks have fixed output port configurations
                 return;
             }
             
             if (node.Type == NodeType.Start) {
-                // For START blocks, use automatic numbering
+                // For START blocks, use automatic numbering and output bits
                 name = $"Out{node.Outputs.Count + 1}";
+                typeName = "Bit";
             } else {
                 name ??= UniquePortName(node.Outputs.Select(p => p.Name), "Out");
             }
@@ -253,8 +261,10 @@ namespace BlockCanvas {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete last input port from END block
                 return;
             }
-            if (node.Type == NodeType.Decision) {
-                System.Media.SystemSounds.Beep.Play(); // Can't delete ports from Decision block
+            if (node.Type == NodeType.Decision || node.Type == NodeType.And ||
+                node.Type == NodeType.Or || node.Type == NodeType.Not || node.Type == NodeType.Xor ||
+                node.Type == NodeType.Add || node.Type == NodeType.Const) {
+                System.Media.SystemSounds.Beep.Play(); // Can't delete ports from primitive blocks
                 return;
             }
             
