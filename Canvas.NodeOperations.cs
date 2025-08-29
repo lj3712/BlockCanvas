@@ -202,7 +202,7 @@ namespace BlockCanvas {
         private void AddInputPort(Node node, string? name = null, int bitLength = 1) {
             // Handle special cases for primitive blocks
             if (node.Type == NodeType.Start || node.Type == NodeType.Decision ||
-                node.Type == NodeType.Nand || node.Type == NodeType.Const ||
+                node.Type == NodeType.Const || node.Type == NodeType.Add ||
                 node.Type == NodeType.NullConsumer) {
                 System.Media.SystemSounds.Beep.Play(); // These blocks have fixed input port configurations
                 return;
@@ -225,7 +225,7 @@ namespace BlockCanvas {
         private void AddOutputPort(Node node, string? name = null, int bitLength = 1) {
             // Handle special cases for primitive blocks
             if (node.Type == NodeType.End || node.Type == NodeType.Decision ||
-                node.Type == NodeType.Nand || node.Type == NodeType.Const ||
+                node.Type == NodeType.Const || node.Type == NodeType.Add ||
                 node.Type == NodeType.NullConsumer) {
                 System.Media.SystemSounds.Beep.Play(); // These blocks have fixed output port configurations
                 return;
@@ -259,9 +259,8 @@ namespace BlockCanvas {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete last input port from END block
                 return;
             }
-            if (node.Type == NodeType.Decision || node.Type == NodeType.Nand ||
-                node.Type == NodeType.Const ||
-                node.Type == NodeType.NullConsumer) {
+            if (node.Type == NodeType.Decision || node.Type == NodeType.Const ||
+                node.Type == NodeType.Add || node.Type == NodeType.NullConsumer) {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete ports from primitive blocks
                 return;
             }

@@ -14,8 +14,8 @@ namespace BlockCanvas {
         Start,
         End,
         Const,
+        Add,
         Decision,
-        Nand,
         Marshaller,
         NullConsumer
     }
@@ -56,16 +56,18 @@ namespace BlockCanvas {
                     // CONST blocks need a trigger and output configurable bit length (default 1)
                     Inputs.Add(new Port(this, PortSide.Input, "Trigger", TypeUtil.AnyLength));
                     Outputs.Add(new Port(this, PortSide.Output, "Value", 1));
+                } else if (Type == NodeType.Add) {
+                    // ADD blocks take two 32-bit numbers and output 32-bit sum plus carry and overflow bits
+                    Inputs.Add(new Port(this, PortSide.Input, "A", 32));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", 32));
+                    Outputs.Add(new Port(this, PortSide.Output, "Sum", 32));
+                    Outputs.Add(new Port(this, PortSide.Output, "Carry", 1));
+                    Outputs.Add(new Port(this, PortSide.Output, "Overflow", 1));
                 } else if (Type == NodeType.Decision) {
                     // Decision blocks take multiple bits (number) and output single bits
                     Inputs.Add(new Port(this, PortSide.Input, "Input", 8)); // Default 8-bit input
                     Outputs.Add(new Port(this, PortSide.Output, "FALSE", 1));
                     Outputs.Add(new Port(this, PortSide.Output, "TRUE", 1));
-                } else if (Type == NodeType.Nand) {
-                    // NAND block takes two single bits and outputs one bit
-                    Inputs.Add(new Port(this, PortSide.Input, "A", 1));
-                    Inputs.Add(new Port(this, PortSide.Input, "B", 1));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", 1));
                 } else if (Type == NodeType.Marshaller) {
                     // Marshaller starts with two inputs and one output for construction
                     // Can be reconfigured for deconstruction (one input, multiple outputs)

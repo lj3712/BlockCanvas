@@ -22,8 +22,8 @@ namespace BlockCanvas {
             if (hitNode != null) {
                 // Don't allow zooming into primitive blocks
                 if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End || 
-                    hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Decision ||
-                    hitNode.Type == NodeType.Nand || hitNode.Type == NodeType.Marshaller || 
+                    hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Add ||
+                    hitNode.Type == NodeType.Decision || hitNode.Type == NodeType.Marshaller || 
                     hitNode.Type == NodeType.NullConsumer) {
                     System.Media.SystemSounds.Beep.Play();
                     return;
@@ -304,10 +304,10 @@ namespace BlockCanvas {
                     // Disable inappropriate port operations for primitive blocks
                     // Disable port modifications for atomic primitives
                     if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Decision ||
-                        hitNode.Type == NodeType.Nand || hitNode.Type == NodeType.Const ||
+                        hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Add ||
                         hitNode.Type == NodeType.NullConsumer) addInputItem.Enabled = false;
                     if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Decision ||
-                        hitNode.Type == NodeType.Nand || hitNode.Type == NodeType.Const ||
+                        hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Add ||
                         hitNode.Type == NodeType.NullConsumer) addOutputItem.Enabled = false;
                     
                     menu.Items.Add(addInputItem);
@@ -381,8 +381,8 @@ namespace BlockCanvas {
                     }
                     
                     primitivesMenu.DropDownItems.Add("CONST", null, (_, __) => AddPrimitiveAt("CONST", NodeType.Const));
+                    primitivesMenu.DropDownItems.Add("ADD", null, (_, __) => AddPrimitiveAt("ADD", NodeType.Add));
                     primitivesMenu.DropDownItems.Add("DECISION", null, (_, __) => AddPrimitiveAt("DECISION", NodeType.Decision));
-                    primitivesMenu.DropDownItems.Add("NAND", null, (_, __) => AddPrimitiveAt("NAND", NodeType.Nand));
                     primitivesMenu.DropDownItems.Add("MARSHALLER", null, (_, __) => AddPrimitiveAt("MARSHALLER", NodeType.Marshaller));
                     primitivesMenu.DropDownItems.Add("NULL", null, (_, __) => AddPrimitiveAt("NULL", NodeType.NullConsumer));
                     

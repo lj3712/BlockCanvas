@@ -169,9 +169,9 @@ namespace BlockCanvas {
                     fill = new LinearGradientBrush(rect, Color.FromArgb(120, 120, 58), Color.FromArgb(80, 80, 44), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(255, 255, 120) : Color.FromArgb(150, 150, 85), selected ? 2.5f : 1.5f);
                     break;
-                case NodeType.Nand:
-                    fill = new LinearGradientBrush(rect, Color.FromArgb(80, 58, 120), Color.FromArgb(60, 44, 80), LinearGradientMode.Vertical);
-                    border = new Pen(selected ? Color.FromArgb(160, 120, 255) : Color.FromArgb(120, 85, 150), selected ? 2.5f : 1.5f);
+                case NodeType.Add:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(58, 90, 120), Color.FromArgb(44, 60, 80), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(120, 180, 255) : Color.FromArgb(85, 120, 150), selected ? 2.5f : 1.5f);
                     break;
                 case NodeType.Marshaller:
                     fill = new LinearGradientBrush(rect, Color.FromArgb(120, 80, 58), Color.FromArgb(80, 60, 44), LinearGradientMode.Vertical);
@@ -206,9 +206,9 @@ namespace BlockCanvas {
                     titleBrush = new SolidBrush(Color.FromArgb(120, 120, 70));
                     titleBorder = new Pen(Color.FromArgb(150, 150, 90), 1);
                     break;
-                case NodeType.Nand:
-                    titleBrush = new SolidBrush(Color.FromArgb(90, 70, 120));
-                    titleBorder = new Pen(Color.FromArgb(120, 90, 150), 1);
+                case NodeType.Add:
+                    titleBrush = new SolidBrush(Color.FromArgb(70, 90, 120));
+                    titleBorder = new Pen(Color.FromArgb(90, 120, 150), 1);
                     break;
                 case NodeType.Marshaller:
                     titleBrush = new SolidBrush(Color.FromArgb(120, 90, 70));
