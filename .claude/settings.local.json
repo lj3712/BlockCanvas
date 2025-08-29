@@ -4,7 +4,10 @@
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(dotnet build)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git cherry-pick:*)"
     ],
     "deny": [],
     "ask": []
