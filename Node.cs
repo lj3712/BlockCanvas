@@ -19,7 +19,8 @@ namespace BlockCanvas {
         Or,
         Not,
         Xor,
-        Add
+        Add,
+        NullConsumer
     }
     public sealed class Node {
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -89,11 +90,20 @@ namespace BlockCanvas {
                     Inputs.Add(new Port(this, PortSide.Input, "B", "Integer"));
                     Outputs.Add(new Port(this, PortSide.Output, "Sum", "Integer"));
                     Outputs.Add(new Port(this, PortSide.Output, "Carry", "Bit"));
+                } else if (Type == NodeType.NullConsumer) {
+                    // Null consumer accepts any input but produces no outputs
+                    Inputs.Add(new Port(this, PortSide.Input, "In", "Any"));
+                    // No outputs - this block just consumes impetuses
                 } else {
                     // Regular nodes get default ports
                     Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));
                     Outputs.Add(new Port(this, PortSide.Output, "Out", "Integer"));
                 }
+            }
+            
+            // Set special size for null consumer - make it a thin bar
+            if (Type == NodeType.NullConsumer) {
+                Size = new SizeF(120, 24); // Thin horizontal bar
             }
         }
 

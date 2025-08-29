@@ -204,7 +204,8 @@ namespace BlockCanvas {
             if (node.Type == NodeType.Start || node.Type == NodeType.Decision ||
                 node.Type == NodeType.And || node.Type == NodeType.Or ||
                 node.Type == NodeType.Not || node.Type == NodeType.Xor ||
-                node.Type == NodeType.Add || node.Type == NodeType.Const) {
+                node.Type == NodeType.Add || node.Type == NodeType.Const ||
+                node.Type == NodeType.NullConsumer) {
                 System.Media.SystemSounds.Beep.Play(); // These blocks have fixed input port configurations
                 return;
             }
@@ -228,7 +229,8 @@ namespace BlockCanvas {
             if (node.Type == NodeType.End || node.Type == NodeType.Decision ||
                 node.Type == NodeType.And || node.Type == NodeType.Or ||
                 node.Type == NodeType.Not || node.Type == NodeType.Xor ||
-                node.Type == NodeType.Add || node.Type == NodeType.Const) {
+                node.Type == NodeType.Add || node.Type == NodeType.Const ||
+                node.Type == NodeType.NullConsumer) {
                 System.Media.SystemSounds.Beep.Play(); // These blocks have fixed output port configurations
                 return;
             }
@@ -263,7 +265,8 @@ namespace BlockCanvas {
             }
             if (node.Type == NodeType.Decision || node.Type == NodeType.And ||
                 node.Type == NodeType.Or || node.Type == NodeType.Not || node.Type == NodeType.Xor ||
-                node.Type == NodeType.Add || node.Type == NodeType.Const) {
+                node.Type == NodeType.Add || node.Type == NodeType.Const ||
+                node.Type == NodeType.NullConsumer) {
                 System.Media.SystemSounds.Beep.Play(); // Can't delete ports from primitive blocks
                 return;
             }
@@ -563,6 +566,151 @@ namespace BlockCanvas {
             selection.Clear();
             selection.Add(dup);
             Invalidate();
+        }
+        
+        private void CheckBlockAbsorption() {
+            var absorbedNodes = new List<Node>();
+            
+            foreach (var droppedNode in selection.ToList()) {
+                if (droppedNode.IsProxy || droppedNode.IsPermanent) continue;
+                
+                // Find what node this was dropped onto (excluding itself and other selected nodes)
+                var targetNode = current.Nodes.FirstOrDefault(n => 
+                    !n.IsProxy && 
+                    n != droppedNode && 
+                    !selection.Contains(n) && 
+                    n.Bounds.IntersectsWith(droppedNode.Bounds)
+                );
+                
+                if (targetNode != null) {
+                    AbsorbNodeIntoTarget(droppedNode, targetNode);
+                    absorbedNodes.Add(droppedNode);
+                }
+            }
+            
+            // Remove absorbed nodes from selection
+            foreach (var node in absorbedNodes) {
+                selection.Remove(node);
+            }
+            
+            if (absorbedNodes.Count > 0) {
+                Invalidate();
+            }
+        }
+        
+        private void AbsorbNodeIntoTarget(Node droppedNode, Node targetNode) {
+            // Ensure target node has an inner graph
+            if (targetNode.Inner == null) {
+                targetNode.Inner = new Graph { Owner = targetNode };
+            }
+            
+            // Move the dropped node into the target's inner graph
+            current.Nodes.Remove(droppedNode);
+            targetNode.Inner.Nodes.Add(droppedNode);
+            
+            // Find all edges connected to the dropped node
+            var connectedEdges = current.Edges.Where(e => 
+                e.FromNode == droppedNode || e.ToNode == droppedNode
+            ).ToList();
+            
+            foreach (var edge in connectedEdges) {
+                if (edge.FromNode == droppedNode && edge.ToNode == targetNode) {
+                    // Connection from dropped node to target - becomes internal, remove external port
+                    HandleInternalConnection(edge, targetNode, true);
+                } else if (edge.FromNode == targetNode && edge.ToNode == droppedNode) {
+                    // Connection from target to dropped node - becomes internal, remove external port
+                    HandleInternalConnection(edge, targetNode, false);
+                } else {
+                    // External connection - needs proxy handling
+                    HandleExternalConnection(edge, droppedNode, targetNode);
+                }
+                
+                current.Edges.Remove(edge);
+            }
+            
+            // Update target node layout after absorption
+            targetNode.LayoutPorts();
+            AutoSizeForPorts(targetNode, allowShrink: false);
+            EnsureProxiesMatch(targetNode);
+        }
+        
+        private void HandleInternalConnection(Edge edge, Node targetNode, bool droppedNodeIsSource) {
+            // Remove the external port from target node since connection is now internal
+            if (droppedNodeIsSource) {
+                // Remove input port from target
+                targetNode.Inputs.Remove(edge.ToPort);
+            } else {
+                // Remove output port from target
+                targetNode.Outputs.Remove(edge.FromPort);
+            }
+            
+            // Add the edge to target's inner graph
+            if (targetNode.Inner != null) {
+                targetNode.Inner.Edges.Add(edge);
+            }
+        }
+        
+        private void HandleExternalConnection(Edge edge, Node droppedNode, Node targetNode) {
+            // This connection goes to/from an external node, so we need proxies
+            if (targetNode.Inner == null) return;
+            
+            if (edge.FromNode == droppedNode) {
+                // Dropped node outputs to external - create outlet proxy
+                CreateOutletProxy(edge, droppedNode, targetNode);
+            } else {
+                // External node inputs to dropped node - create inlet proxy
+                CreateInletProxy(edge, droppedNode, targetNode);
+            }
+        }
+        
+        private void CreateOutletProxy(Edge edge, Node droppedNode, Node targetNode) {
+            if (targetNode.Inner == null) return;
+            
+            // Create outlet proxy in target's inner graph
+            int proxyIndex = targetNode.Outputs.Count;
+            var proxy = new Node($"Out{proxyIndex + 1}", new PointF(droppedNode.Position.X + 200, droppedNode.Position.Y), createDefaultPorts: false) {
+                IsProxy = true,
+                ProxyIsInlet = false,
+                ProxyIndex = proxyIndex
+            };
+            proxy.Inputs.Add(new Port(proxy, PortSide.Input, "In", edge.FromPort.TypeName));
+            targetNode.Inner.Nodes.Add(proxy);
+            
+            // Add output port to target node
+            var newOutputPort = new Port(targetNode, PortSide.Output, $"Out{proxyIndex + 1}", edge.FromPort.TypeName);
+            targetNode.Outputs.Add(newOutputPort);
+            
+            // Connect dropped node to proxy inside target
+            targetNode.Inner.Edges.Add(new Edge(edge.FromPort, proxy.Inputs[0]));
+            
+            // Create new external edge from target instead of modifying existing one
+            var newEdge = new Edge(newOutputPort, edge.ToPort);
+            current.Edges.Add(newEdge);
+        }
+        
+        private void CreateInletProxy(Edge edge, Node droppedNode, Node targetNode) {
+            if (targetNode.Inner == null) return;
+            
+            // Create inlet proxy in target's inner graph
+            int proxyIndex = targetNode.Inputs.Count;
+            var proxy = new Node($"In{proxyIndex + 1}", new PointF(droppedNode.Position.X - 200, droppedNode.Position.Y), createDefaultPorts: false) {
+                IsProxy = true,
+                ProxyIsInlet = true,
+                ProxyIndex = proxyIndex
+            };
+            proxy.Outputs.Add(new Port(proxy, PortSide.Output, "Out", edge.ToPort.TypeName));
+            targetNode.Inner.Nodes.Add(proxy);
+            
+            // Add input port to target node
+            var newInputPort = new Port(targetNode, PortSide.Input, $"In{proxyIndex + 1}", edge.ToPort.TypeName);
+            targetNode.Inputs.Add(newInputPort);
+            
+            // Connect proxy to dropped node inside target
+            targetNode.Inner.Edges.Add(new Edge(proxy.Outputs[0], edge.ToPort));
+            
+            // Create new external edge to target instead of modifying existing one
+            var newEdge = new Edge(edge.FromPort, newInputPort);
+            current.Edges.Add(newEdge);
         }
     }
 }

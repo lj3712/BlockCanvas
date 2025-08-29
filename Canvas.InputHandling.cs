@@ -25,7 +25,7 @@ namespace BlockCanvas {
                     hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Decision ||
                     hitNode.Type == NodeType.And || hitNode.Type == NodeType.Or ||
                     hitNode.Type == NodeType.Not || hitNode.Type == NodeType.Xor ||
-                    hitNode.Type == NodeType.Add) {
+                    hitNode.Type == NodeType.Add || hitNode.Type == NodeType.NullConsumer) {
                     System.Media.SystemSounds.Beep.Play();
                     return;
                 }
@@ -280,11 +280,13 @@ namespace BlockCanvas {
                     if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.Decision ||
                         hitNode.Type == NodeType.And || hitNode.Type == NodeType.Or ||
                         hitNode.Type == NodeType.Not || hitNode.Type == NodeType.Xor ||
-                        hitNode.Type == NodeType.Add || hitNode.Type == NodeType.Const) addInputItem.Enabled = false;
+                        hitNode.Type == NodeType.Add || hitNode.Type == NodeType.Const ||
+                        hitNode.Type == NodeType.NullConsumer) addInputItem.Enabled = false;
                     if (hitNode.Type == NodeType.End || hitNode.Type == NodeType.Decision ||
                         hitNode.Type == NodeType.And || hitNode.Type == NodeType.Or ||
                         hitNode.Type == NodeType.Not || hitNode.Type == NodeType.Xor ||
-                        hitNode.Type == NodeType.Add || hitNode.Type == NodeType.Const) addOutputItem.Enabled = false;
+                        hitNode.Type == NodeType.Add || hitNode.Type == NodeType.Const ||
+                        hitNode.Type == NodeType.NullConsumer) addOutputItem.Enabled = false;
                     
                     menu.Items.Add(addInputItem);
                     menu.Items.Add(addOutputItem);
@@ -376,6 +378,7 @@ namespace BlockCanvas {
                     
                     primitivesMenu.DropDownItems.Add("CONST", null, (_, __) => AddPrimitiveAt("CONST", NodeType.Const));
                     primitivesMenu.DropDownItems.Add("DECISION", null, (_, __) => AddPrimitiveAt("DECISION", NodeType.Decision));
+                    primitivesMenu.DropDownItems.Add("NULL", null, (_, __) => AddPrimitiveAt("NULL", NodeType.NullConsumer));
                     primitivesMenu.DropDownItems.Add(new ToolStripSeparator());
                     primitivesMenu.DropDownItems.Add("ADD", null, (_, __) => AddPrimitiveAt("ADD", NodeType.Add));
                     primitivesMenu.DropDownItems.Add(new ToolStripSeparator());
@@ -475,6 +478,11 @@ namespace BlockCanvas {
             }
 
             if (e.Button == MouseButtons.Left) {
+                // Check for block absorption before ending drag
+                if (draggingSelection && selection.Count > 0) {
+                    CheckBlockAbsorption();
+                }
+                
                 draggingSelection = false;
                 if (resizingPort != null) {
                     resizingPort = null;

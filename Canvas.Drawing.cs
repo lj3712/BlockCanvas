@@ -142,6 +142,12 @@ namespace BlockCanvas {
                 DrawDecisionNode(g, n, selected);
                 return;
             }
+            
+            // Special thin bar for Null Consumer blocks
+            if (n.Type == NodeType.NullConsumer) {
+                DrawNullConsumerNode(g, n, selected);
+                return;
+            }
 
             float radius = 10f;
             using var path = RoundedRect(rect, radius);
@@ -405,6 +411,46 @@ namespace BlockCanvas {
             if (selected) {
                 DrawPortResizeHandles(g, n);
                 // Note: No regular resize handles for diamond shape
+            }
+        }
+
+        private void DrawNullConsumerNode(Graphics g, Node n, bool selected) {
+            var rect = n.Bounds;
+            
+            // Colors for null consumer - dark gray/black theme
+            var fillColor1 = Color.FromArgb(40, 40, 40);
+            var fillColor2 = Color.FromArgb(20, 20, 20);
+            var borderColor = selected ? Color.FromArgb(160, 160, 160) : Color.FromArgb(80, 80, 80);
+            
+            // Simple rectangle with minimal rounding
+            float radius = 3f;
+            using var path = RoundedRect(rect, radius);
+            
+            using var fill = new LinearGradientBrush(rect, fillColor1, fillColor2, LinearGradientMode.Vertical);
+            using var border = new Pen(borderColor, selected ? 2.5f : 1.5f);
+            
+            g.FillPath(fill, path);
+            g.DrawPath(border, path);
+            
+            // Draw title text in smaller font
+            using var textBrush = new SolidBrush(Color.LightGray);
+            var sf = new StringFormat {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+                Trimming = StringTrimming.EllipsisCharacter
+            };
+            
+            // Use smaller font for thin bar
+            using var smallFont = new Font(titleFont.FontFamily, titleFont.Size * 0.8f, titleFont.Style);
+            g.DrawString(n.Title, smallFont, textBrush, rect, sf);
+            
+            // Draw ports
+            foreach (var p in n.Inputs) DrawPort(g, p, isInput: true);
+            // No outputs to draw
+            
+            if (selected) {
+                DrawPortResizeHandles(g, n);
+                DrawResizeHandles(g, n);
             }
         }
 

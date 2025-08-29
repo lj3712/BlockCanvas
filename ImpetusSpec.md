@@ -3,12 +3,11 @@
 Impetus is a visual programming language that is, in essence, a hierarchical flowchart come to life. Data flows between connections (impetuses), causing work to be done inside blocks, themselves consisting of blocks, connections, and impetuses.
 
 ## Fundamental Data Types
-1) There are four fundamental data types: the integer, the float, the character, and the bit. All of the types have platform dependent definitions except the bit, which holds one binary digit.
-2) Boolean TRUE is defined as either a set bit, or a nonzero integer. Likewise, Boolean FALSE is defined as either a clear bit, or a zero integer.
-3) Integers and bits are compatible according to the above Boolean rules. A set bit will correspond to the integer 1. A clear bit, the integer zero.
+1) There is only one fundamental data type -- the bit.
+2) Boolean TRUE is defined as a set bit. Likewise, Boolean FALSE is defined as a clear bit.
 
 ## Basic Structure
-4) Any form of a "gestalt" process is called a block, regardless of its actual function.
+4) Anything that consumes and/or produces impetuses is called a block, regardless of its actual function.
 5) Blocks consist of "ports", input and output, which connect to other ports through wires.
 6) Blocks are composed of other blocks and wires, and so on down to atomic language primitives.
 7) A connection between blocks is called a "wire".
@@ -17,7 +16,7 @@ Impetus is a visual programming language that is, in essence, a hierarchical flo
 8) Input ports must wire to output ports. Output ports must wire to input ports.
 9) An output port may wire to any number of input ports.
 10) An input port may only have one wire from an output port.
-11) Ports can have different "types". Types must match between input and output ports.
+11) Ports can have different "lengths", equivalent to the number of bits it expects in an impetus. Lengths must match between ports.
 
 ## Data Flow Rules
 12) A block will not begin processing until all of its input ports have waiting impetuses. This is called "consuming".
@@ -37,8 +36,5 @@ Impetus is a visual programming language that is, in essence, a hierarchical flo
 	
 ## Language Primitives
 
-CONST - Outputs a constant value (configured at design time)
-AND - Logical AND of two bits
-OR - Logical OR of two bits
-NOT - Logical NOT of one bit
-XOR - Exclusive OR of two bits
+CONST - Outputs a constant value (of a defined length of bits, big-endian, configured at design time)
+NAND - Logical AND of two bits
