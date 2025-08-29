@@ -1,0 +1,18 @@
+﻿;; Schema definition
+(schema ImpetusProject
+  (version "1.0")
+  (blocks
+    (block "AddTwoNumbers"
+      (inputs (a [32]) (b [32]))
+      (outputs (sum [33]))
+      (wires
+        (a -> adder.in1)
+        (b -> adder.in2)
+        (adder.out -> sum)))
+    (block "SignalProcessor"
+      ;; This is our main audio processing chain
+      (inputs 
+        (audio-in [16])    ;; 16-bit audio samples
+        (gain [8]))        ;; 8-bit gain control
+      ;; TODO: Add low-pass filter here
+      (outputs (audio-out [16])))))
