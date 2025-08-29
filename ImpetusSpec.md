@@ -37,4 +37,4 @@ Impetus is a visual programming language that is, in essence, a hierarchical flo
 ## Language Primitives
 
 CONST - Outputs a constant value (of a defined length of bits, big-endian, configured at design time)
-NAND - Logical AND of two bits
+NAND - Logical NAND of two bits

@@ -15,11 +15,7 @@ namespace BlockCanvas {
         End,
         Const,
         Decision,
-        And,
-        Or,
-        Not,
-        Xor,
-        Add,
+        Nand,
         NullConsumer
     }
     public sealed class Node {
@@ -39,7 +35,6 @@ namespace BlockCanvas {
         public NodeType Type { get; set; } = NodeType.Regular;
         public bool IsPermanent = false; // Cannot be deleted
         public string ConstValue { get; set; } = "0"; // Value for CONST blocks
-        public string AddDataType { get; set; } = "Bit"; // Current data type for ADD blocks
 
 
 
@@ -64,31 +59,11 @@ namespace BlockCanvas {
                     Inputs.Add(new Port(this, PortSide.Input, "Input", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "FALSE", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "TRUE", "Bit"));
-                } else if (Type == NodeType.And) {
-                    // AND block takes two bit inputs and outputs one bit
+                } else if (Type == NodeType.Nand) {
+                    // NAND block takes two bit inputs and outputs one bit (NAND logic)
                     Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
                     Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
-                } else if (Type == NodeType.Or) {
-                    // OR block takes two bit inputs and outputs one bit
-                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
-                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
-                } else if (Type == NodeType.Not) {
-                    // NOT block takes one bit input and outputs one bit
-                    Inputs.Add(new Port(this, PortSide.Input, "In", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
-                } else if (Type == NodeType.Xor) {
-                    // XOR block takes two bit inputs and outputs one bit
-                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
-                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
-                } else if (Type == NodeType.Add) {
-                    // ADD block takes two bit inputs, outputs result + overflow/carry
-                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
-                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Sum", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Carry", "Bit"));
                 } else if (Type == NodeType.NullConsumer) {
                     // Null consumer accepts any input but produces no outputs
                     Inputs.Add(new Port(this, PortSide.Input, "In", "Any"));
@@ -123,24 +98,6 @@ namespace BlockCanvas {
             }
         }
 
-        // Update ADD block ports when data type changes (now only supports Bit)
-        public void UpdateAddPortTypes(string newDataType) {
-            if (Type != NodeType.Add) return;
-            
-            // Force to Bit since it's the only supported type
-            AddDataType = "Bit";
-            
-            // All ports are Bit type
-            if (Inputs.Count >= 2) {
-                Inputs[0].TypeName = "Bit"; // A
-                Inputs[1].TypeName = "Bit"; // B
-            }
-            
-            if (Outputs.Count >= 2) {
-                Outputs[0].TypeName = "Bit"; // Sum
-                Outputs[1].TypeName = "Bit"; // Carry
-            }
-        }
 
 
         public void LayoutPorts() {
