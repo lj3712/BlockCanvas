@@ -60,21 +60,25 @@ namespace BlockCanvas {
 
     public sealed class PortDef {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
-        [JsonPropertyName("type")] public string Type { get; set; } = "Bit";
+        [JsonPropertyName("bitLength")] public int BitLength { get; set; } = 1;
         [JsonPropertyName("width")] public float Width { get; set; } = 108f;
+        
+        // Keep Type property for backward compatibility during transition
+        [JsonPropertyName("type")] public string? Type { get; set; }
     }
 
-    // Accepts either {"name":"In","type":"Int"} OR just "In" (legacy)
+    // Handles both new bitLength format and legacy type format
     public sealed class PortDefConverter : JsonConverter<PortDef> {
         public override PortDef? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
             if (reader.TokenType == JsonTokenType.String) {
                 var name = reader.GetString() ?? "";
-                return new PortDef { Name = name, Type = "Bit", Width = 108f };
+                return new PortDef { Name = name, BitLength = 1, Width = 108f };
             }
             if (reader.TokenType == JsonTokenType.StartObject) {
                 string? name = null;
-                string typeName = "Bit";
+                int bitLength = 1;
                 float width = 108f;
+                string? legacyType = null;
 
                 while (reader.Read() && reader.TokenType != JsonTokenType.EndObject) {
                     if (reader.TokenType != JsonTokenType.PropertyName) continue;
@@ -82,11 +86,18 @@ namespace BlockCanvas {
                     reader.Read();
                     switch (prop) {
                         case "name": name = reader.GetString(); break;
-                        case "type": typeName = TypeUtil.Normalize(reader.GetString()); break;
+                        case "bitLength": bitLength = reader.GetInt32(); break;
+                        case "type": legacyType = reader.GetString(); break; // For backward compatibility
                         case "width": width = reader.GetSingle(); break;
                     }
                 }
-                return new PortDef { Name = name ?? "", Type = typeName, Width = width };
+                
+                // If we have legacy type but no bitLength, convert it
+                if (legacyType != null && bitLength == 1) {
+                    bitLength = TypeUtil.GetBitLength(legacyType);
+                }
+                
+                return new PortDef { Name = name ?? "", BitLength = bitLength, Width = width };
             }
             throw new JsonException("Invalid PortDef");
         }
@@ -94,7 +105,7 @@ namespace BlockCanvas {
         public override void Write(Utf8JsonWriter writer, PortDef value, JsonSerializerOptions options) {
             writer.WriteStartObject();
             writer.WriteString("name", value.Name);
-            writer.WriteString("type", TypeUtil.Normalize(value.Type));
+            writer.WriteNumber("bitLength", value.BitLength);
             writer.WriteNumber("width", value.Width);
             writer.WriteEndObject();
         }

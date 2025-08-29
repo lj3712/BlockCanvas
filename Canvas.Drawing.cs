@@ -243,7 +243,7 @@ namespace BlockCanvas {
             float r = port.CornerRadius;
             var rect = port.VisualRect;
 
-            var baseC = TypeUtil.BaseColor(port.TypeName);
+            var baseC = TypeUtil.BaseColor(port.BitLength);
             Color cTop = ControlPaint.Light(baseC);
             Color cBot = ControlPaint.Dark(baseC);
 
@@ -282,7 +282,7 @@ namespace BlockCanvas {
             using var font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
             using var tb = new SolidBrush(Color.White);
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
-            g.DrawString($"{port.Name} : {TypeUtil.Short(port.TypeName)}", font, tb, rect, sf);
+            g.DrawString($"{port.Name} : {TypeUtil.FormatBitLength(port.BitLength)}", font, tb, rect, sf);
         }
 
         private void DrawEdge(Graphics g, Edge e) {

@@ -45,33 +45,33 @@ namespace BlockCanvas {
             if (createDefaultPorts) {
                 // Configure ports based on node type
                 if (Type == NodeType.Start) {
-                    // START blocks have infinite output ports, start with one - outputs bits
-                    Outputs.Add(new Port(this, PortSide.Output, "Out1", "Bit"));
+                    // START blocks have infinite output ports, start with one - outputs single bits
+                    Outputs.Add(new Port(this, PortSide.Output, "Out1", 1));
                 } else if (Type == NodeType.End) {
-                    // END blocks have infinite input ports, start with one - can accept any type
-                    Inputs.Add(new Port(this, PortSide.Input, "In1", "Any"));
+                    // END blocks have infinite input ports, start with one - can accept any length
+                    Inputs.Add(new Port(this, PortSide.Input, "In1", TypeUtil.AnyLength));
                 } else if (Type == NodeType.Const) {
-                    // CONST blocks need a single "Any" input trigger and one output for the constant value
-                    Inputs.Add(new Port(this, PortSide.Input, "Trigger", "Any"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Value", "Bit"));
+                    // CONST blocks need a trigger and output configurable bit length (default 1)
+                    Inputs.Add(new Port(this, PortSide.Input, "Trigger", TypeUtil.AnyLength));
+                    Outputs.Add(new Port(this, PortSide.Output, "Value", 1));
                 } else if (Type == NodeType.Decision) {
-                    // Decision blocks take bit input and have TRUE/FALSE bit outputs
-                    Inputs.Add(new Port(this, PortSide.Input, "Input", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "FALSE", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "TRUE", "Bit"));
+                    // Decision blocks take multiple bits (number) and output single bits
+                    Inputs.Add(new Port(this, PortSide.Input, "Input", 8)); // Default 8-bit input
+                    Outputs.Add(new Port(this, PortSide.Output, "FALSE", 1));
+                    Outputs.Add(new Port(this, PortSide.Output, "TRUE", 1));
                 } else if (Type == NodeType.Nand) {
-                    // NAND block takes two bit inputs and outputs one bit (NAND logic)
-                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
-                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
+                    // NAND block takes two single bits and outputs one bit
+                    Inputs.Add(new Port(this, PortSide.Input, "A", 1));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", 1));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", 1));
                 } else if (Type == NodeType.NullConsumer) {
-                    // Null consumer accepts any input but produces no outputs
-                    Inputs.Add(new Port(this, PortSide.Input, "In", "Any"));
+                    // Null consumer accepts any length input but produces no outputs
+                    Inputs.Add(new Port(this, PortSide.Input, "In", TypeUtil.AnyLength));
                     // No outputs - this block just consumes impetuses
                 } else {
-                    // Regular nodes get default ports
-                    Inputs.Add(new Port(this, PortSide.Input, "In", "Bit"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
+                    // Regular nodes get default single-bit ports
+                    Inputs.Add(new Port(this, PortSide.Input, "In", 1));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", 1));
                 }
             }
             
@@ -87,14 +87,14 @@ namespace BlockCanvas {
         public void AddOutputPortIfNeeded() {
             if (Type == NodeType.Start) {
                 string newName = $"Out{Outputs.Count + 1}";
-                Outputs.Add(new Port(this, PortSide.Output, newName, "Bit"));
+                Outputs.Add(new Port(this, PortSide.Output, newName, 1));
             }
         }
 
         public void AddInputPortIfNeeded() {
             if (Type == NodeType.End) {
                 string newName = $"In{Inputs.Count + 1}";
-                Inputs.Add(new Port(this, PortSide.Input, newName, "Any"));
+                Inputs.Add(new Port(this, PortSide.Input, newName, TypeUtil.AnyLength));
             }
         }
 

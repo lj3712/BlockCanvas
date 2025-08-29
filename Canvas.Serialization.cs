@@ -30,8 +30,8 @@ namespace BlockCanvas {
                     Type = n.Type.ToString(),
                     IsPermanent = n.IsPermanent,
                     ConstValue = n.ConstValue,
-                    Inputs = n.Inputs.Select(p => new PortDef { Name = p.Name, Type = p.TypeName, Width = p.CustomWidth }).ToList(),
-                    Outputs = n.Outputs.Select(p => new PortDef { Name = p.Name, Type = p.TypeName, Width = p.CustomWidth }).ToList(),
+                    Inputs = n.Inputs.Select(p => new PortDef { Name = p.Name, BitLength = p.BitLength, Width = p.CustomWidth }).ToList(),
+                    Outputs = n.Outputs.Select(p => new PortDef { Name = p.Name, BitLength = p.BitLength, Width = p.CustomWidth }).ToList(),
                     Inner = n.Inner != null ? ToDto(n.Inner) : null
                 };
                 dto.Nodes.Add(nDto);
@@ -63,12 +63,12 @@ namespace BlockCanvas {
                 };
 
                 foreach (var def in nDto.Inputs) {
-                    var port = new Port(n, PortSide.Input, def.Name, def.Type);
+                    var port = new Port(n, PortSide.Input, def.Name, def.BitLength);
                     port.CustomWidth = def.Width;
                     n.Inputs.Add(port);
                 }
                 foreach (var def in nDto.Outputs) {
-                    var port = new Port(n, PortSide.Output, def.Name, def.Type);
+                    var port = new Port(n, PortSide.Output, def.Name, def.BitLength);
                     port.CustomWidth = def.Width;
                     n.Outputs.Add(port);
                 }

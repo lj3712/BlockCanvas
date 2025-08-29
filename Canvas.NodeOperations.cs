@@ -61,13 +61,13 @@ namespace BlockCanvas {
 
             foreach (var p in boundaryInputs) {
                 string proposed = p.Owner.Title + "." + p.Name;
-                var gPort = new Port(grp, PortSide.Input, UniquePortName(grp.Inputs.Select(pp => pp.Name), proposed), p.TypeName);
+                var gPort = new Port(grp, PortSide.Input, UniquePortName(grp.Inputs.Select(pp => pp.Name), proposed), p.BitLength);
                 grp.Inputs.Add(gPort);
                 mapIn[p] = gPort;
             }
             foreach (var p in boundaryOutputs) {
                 string proposed = p.Owner.Title + "." + p.Name;
-                var gPort = new Port(grp, PortSide.Output, UniquePortName(grp.Outputs.Select(pp => pp.Name), proposed), p.TypeName);
+                var gPort = new Port(grp, PortSide.Output, UniquePortName(grp.Outputs.Select(pp => pp.Name), proposed), p.BitLength);
                 grp.Outputs.Add(gPort);
                 mapOut[p] = gPort;
             }
@@ -199,7 +199,7 @@ namespace BlockCanvas {
         }
         private int CurrentLevel() => GetTrail().Count;
 
-        private void AddInputPort(Node node, string? name = null, string typeName = "Bit") {
+        private void AddInputPort(Node node, string? name = null, int bitLength = 1) {
             // Handle special cases for primitive blocks
             if (node.Type == NodeType.Start || node.Type == NodeType.Decision ||
                 node.Type == NodeType.Nand || node.Type == NodeType.Const ||
@@ -209,20 +209,20 @@ namespace BlockCanvas {
             }
             
             if (node.Type == NodeType.End) {
-                // For END blocks, use automatic numbering and accept any type
+                // For END blocks, use automatic numbering and accept any length
                 name = $"In{node.Inputs.Count + 1}";
-                typeName = "Any";
+                bitLength = TypeUtil.AnyLength;
             } else {
                 name ??= UniquePortName(node.Inputs.Select(p => p.Name), "In");
             }
             
-            node.Inputs.Add(new Port(node, PortSide.Input, name, typeName));
+            node.Inputs.Add(new Port(node, PortSide.Input, name, bitLength));
             AutoSizeForPorts(node, allowShrink: false);
             EnsureProxiesMatch(node);
             Invalidate();
         }
         
-        private void AddOutputPort(Node node, string? name = null, string typeName = "Bit") {
+        private void AddOutputPort(Node node, string? name = null, int bitLength = 1) {
             // Handle special cases for primitive blocks
             if (node.Type == NodeType.End || node.Type == NodeType.Decision ||
                 node.Type == NodeType.Nand || node.Type == NodeType.Const ||
@@ -232,14 +232,14 @@ namespace BlockCanvas {
             }
             
             if (node.Type == NodeType.Start) {
-                // For START blocks, use automatic numbering and output bits
+                // For START blocks, use automatic numbering and output single bits
                 name = $"Out{node.Outputs.Count + 1}";
-                typeName = "Bit";
+                bitLength = 1;
             } else {
                 name ??= UniquePortName(node.Outputs.Select(p => p.Name), "Out");
             }
             
-            node.Outputs.Add(new Port(node, PortSide.Output, name, typeName));
+            node.Outputs.Add(new Port(node, PortSide.Output, name, bitLength));
             AutoSizeForPorts(node, allowShrink: false);
             EnsureProxiesMatch(node);
             Invalidate();
@@ -295,7 +295,7 @@ namespace BlockCanvas {
             for (int i = inlets.Count; i < owner.Inputs.Count; i++) {
                 var parentPort = owner.Inputs[i];
                 var pn = new Node(parentPort.Name, PointF.Empty, createDefaultPorts: false) { IsProxy = true, ProxyIsInlet = true, ProxyIndex = i, Id = "inlet_" + i };
-                pn.Outputs.Add(new Port(pn, PortSide.Output, parentPort.Name, parentPort.TypeName));
+                pn.Outputs.Add(new Port(pn, PortSide.Output, parentPort.Name, parentPort.BitLength));
                 g.Nodes.Add(pn);
             }
             for (int i = owner.Inputs.Count; i < inlets.Count; i++) {
@@ -308,14 +308,14 @@ namespace BlockCanvas {
                 var pn = g.Nodes.First(n => n.IsProxy && n.ProxyIsInlet && n.ProxyIndex == i);
                 pn.Title = parentPort.Name;
                 pn.Outputs[0].Name = parentPort.Name;
-                pn.Outputs[0].TypeName = parentPort.TypeName;
+                pn.Outputs[0].BitLength = parentPort.BitLength;
             }
 
             // Outlets sync
             for (int i = outlets.Count; i < owner.Outputs.Count; i++) {
                 var parentPort = owner.Outputs[i];
                 var pn = new Node(parentPort.Name, PointF.Empty, createDefaultPorts: false) { IsProxy = true, ProxyIsInlet = false, ProxyIndex = i, Id = "outlet_" + i };
-                pn.Inputs.Add(new Port(pn, PortSide.Input, parentPort.Name, parentPort.TypeName));
+                pn.Inputs.Add(new Port(pn, PortSide.Input, parentPort.Name, parentPort.BitLength));
                 g.Nodes.Add(pn);
             }
             for (int i = owner.Outputs.Count; i < outlets.Count; i++) {
@@ -328,7 +328,7 @@ namespace BlockCanvas {
                 var pn = g.Nodes.First(n => n.IsProxy && !n.ProxyIsInlet && n.ProxyIndex == i);
                 pn.Title = parentPort.Name;
                 pn.Inputs[0].Name = parentPort.Name;
-                pn.Inputs[0].TypeName = parentPort.TypeName;
+                pn.Inputs[0].BitLength = parentPort.BitLength;
             }
         }
 
@@ -513,8 +513,8 @@ namespace BlockCanvas {
                     ProxyIsInlet = n.ProxyIsInlet,
                     ProxyIndex = n.ProxyIndex
                 };
-                foreach (var p in n.Inputs) cn.Inputs.Add(new Port(cn, PortSide.Input, p.Name, p.TypeName));
-                foreach (var p in n.Outputs) cn.Outputs.Add(new Port(cn, PortSide.Output, p.Name, p.TypeName));
+                foreach (var p in n.Inputs) cn.Inputs.Add(new Port(cn, PortSide.Input, p.Name, p.BitLength));
+                foreach (var p in n.Outputs) cn.Outputs.Add(new Port(cn, PortSide.Output, p.Name, p.BitLength));
                 cn.LayoutPorts();
 
                 g.Nodes.Add(cn);
@@ -548,8 +548,8 @@ namespace BlockCanvas {
             var dup = new Node(src.Title + " Copy", new PointF(src.Position.X + 30, src.Position.Y + 30), createDefaultPorts: false, src.Type) {
                 Size = src.Size
             };
-            foreach (var p in src.Inputs) dup.Inputs.Add(new Port(dup, PortSide.Input, p.Name, p.TypeName));
-            foreach (var p in src.Outputs) dup.Outputs.Add(new Port(dup, PortSide.Output, p.Name, p.TypeName));
+            foreach (var p in src.Inputs) dup.Inputs.Add(new Port(dup, PortSide.Input, p.Name, p.BitLength));
+            foreach (var p in src.Outputs) dup.Outputs.Add(new Port(dup, PortSide.Output, p.Name, p.BitLength));
             dup.LayoutPorts();
 
             if (src.Inner != null) {
@@ -668,11 +668,11 @@ namespace BlockCanvas {
                 ProxyIsInlet = false,
                 ProxyIndex = proxyIndex
             };
-            proxy.Inputs.Add(new Port(proxy, PortSide.Input, "In", edge.FromPort.TypeName));
+            proxy.Inputs.Add(new Port(proxy, PortSide.Input, "In", edge.FromPort.BitLength));
             targetNode.Inner.Nodes.Add(proxy);
             
             // Add output port to target node
-            var newOutputPort = new Port(targetNode, PortSide.Output, $"Out{proxyIndex + 1}", edge.FromPort.TypeName);
+            var newOutputPort = new Port(targetNode, PortSide.Output, $"Out{proxyIndex + 1}", edge.FromPort.BitLength);
             targetNode.Outputs.Add(newOutputPort);
             
             // Connect dropped node to proxy inside target
@@ -693,11 +693,11 @@ namespace BlockCanvas {
                 ProxyIsInlet = true,
                 ProxyIndex = proxyIndex
             };
-            proxy.Outputs.Add(new Port(proxy, PortSide.Output, "Out", edge.ToPort.TypeName));
+            proxy.Outputs.Add(new Port(proxy, PortSide.Output, "Out", edge.ToPort.BitLength));
             targetNode.Inner.Nodes.Add(proxy);
             
             // Add input port to target node
-            var newInputPort = new Port(targetNode, PortSide.Input, $"In{proxyIndex + 1}", edge.ToPort.TypeName);
+            var newInputPort = new Port(targetNode, PortSide.Input, $"In{proxyIndex + 1}", edge.ToPort.BitLength);
             targetNode.Inputs.Add(newInputPort);
             
             // Connect proxy to dropped node inside target

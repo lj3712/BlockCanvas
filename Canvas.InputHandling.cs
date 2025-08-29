@@ -218,19 +218,26 @@ namespace BlockCanvas {
                     menu.Items.Add(new ToolStripSeparator());
                     var typeMenu = new ToolStripMenuItem("Type");
 
-                    // Fundamentals
-                    foreach (var t in TypeUtil.Fundamentals) {
-                        var item = new ToolStripMenuItem(t) { Checked = string.Equals(hitPort.TypeName, t, StringComparison.Ordinal) };
-                        item.Click += (_, __) => { hitPort.TypeName = t; Invalidate(); };
+                    // Common bit lengths
+                    int[] commonLengths = { 1, 8, 16, 32 };
+                    foreach (var length in commonLengths) {
+                        var item = new ToolStripMenuItem($"[{length}]") { Checked = hitPort.BitLength == length };
+                        item.Click += (_, __) => { hitPort.BitLength = length; Invalidate(); };
                         typeMenu.DropDownItems.Add(item);
                     }
-
-                    // Composite…
+                    
+                    // Any length option
                     typeMenu.DropDownItems.Add(new ToolStripSeparator());
-                    typeMenu.DropDownItems.Add(new ToolStripMenuItem("Set Composite Type…", null, (_, __) => {
-                        string? s = Microsoft.VisualBasic.Interaction.InputBox("Composite type name:", "Set Port Type", hitPort.TypeName);
-                        if (!string.IsNullOrWhiteSpace(s)) {
-                            hitPort.TypeName = TypeUtil.Normalize(s);
+                    var anyItem = new ToolStripMenuItem("[*] (Any Length)") { Checked = hitPort.BitLength == TypeUtil.AnyLength };
+                    anyItem.Click += (_, __) => { hitPort.BitLength = TypeUtil.AnyLength; Invalidate(); };
+                    typeMenu.DropDownItems.Add(anyItem);
+
+                    // Custom bit length…
+                    typeMenu.DropDownItems.Add(new ToolStripSeparator());
+                    typeMenu.DropDownItems.Add(new ToolStripMenuItem("Set Custom Bit Length…", null, (_, __) => {
+                        string? s = Microsoft.VisualBasic.Interaction.InputBox("Bit length (1-1024):", "Set Port Bit Length", hitPort.BitLength.ToString());
+                        if (!string.IsNullOrWhiteSpace(s) && int.TryParse(s, out int length) && length >= 1 && length <= 1024) {
+                            hitPort.BitLength = length;
                             Invalidate();
                         }
                     }));
@@ -477,7 +484,7 @@ namespace BlockCanvas {
                     else if (connectStartPort.Side == PortSide.Input && endPort.Side == PortSide.Output) { outPort = endPort; inPort = connectStartPort; }
 
                     if (outPort != null && inPort != null) {
-                        if (!TypeUtil.Compatible(outPort.TypeName, inPort.TypeName)) {
+                        if (!TypeUtil.Compatible(outPort.BitLength, inPort.BitLength)) {
                             System.Media.SystemSounds.Beep.Play();
                         }
                         else {

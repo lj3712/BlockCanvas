@@ -12,44 +12,53 @@ namespace BlockCanvas {
     public enum PortSide { Input, Output }
 
     public static class TypeUtil {
-        public static readonly string[] Fundamentals = { "Bit", "Any" };
+        // Special bit length value indicating "any length" (for END blocks)
+        public const int AnyLength = -1;
 
-        public static string Normalize(string? s) {
-            if (string.IsNullOrWhiteSpace(s)) return "Bit";
-            s = s.Trim();
-
-            // Canonicalize common aliases (case-insensitive)
-            var k = s.ToLowerInvariant();
-            return k switch {
-                "bool" or "boolean" or "bit" => "Bit",
-                "any" => "Any",
-                _ => "Bit"          // everything else defaults to Bit
+        // Convert old type names to bit lengths (for backward compatibility)
+        public static int GetBitLength(string? typeName) {
+            if (string.IsNullOrWhiteSpace(typeName)) return 1;
+            
+            var normalized = typeName.Trim().ToLowerInvariant();
+            return normalized switch {
+                "bit" or "bool" or "boolean" => 1,
+                "any" => AnyLength,
+                _ => 1 // Default to single bit
             };
         }
 
-        public static string Short(string t) => t switch {
-            "Bit" => "Bit",
-            "Any" => "Any",
-            _ => t // composite names already short/meaningful
-        };
-
-        public static bool Compatible(string outT, string inT) {
-            // "Any" type (used by END blocks) can accept any input
-            if (string.Equals(inT, "Any", StringComparison.Ordinal)) return true;
-            // Regular type compatibility check
-            return string.Equals(outT, inT, StringComparison.Ordinal);
+        // Convert bit length to display string
+        public static string FormatBitLength(int bitLength) {
+            return bitLength == AnyLength ? "[*]" : $"[{bitLength}]";
         }
 
-        public static Color BaseColor(string t) => t switch {
-            "Bit" => Color.FromArgb(100, 200, 140),
-            "Any" => Color.FromArgb(180, 180, 180), // Gray for "Any" type
-            _ => HashColor(t) // composite: stable pleasant color
-        };
+        // Check if two ports are compatible (bit lengths must match, or one accepts any length)
+        public static bool Compatible(int outputBitLength, int inputBitLength) {
+            // "Any" length (used by END blocks) can accept any input
+            if (inputBitLength == AnyLength) return true;
+            // Lengths must match exactly
+            return outputBitLength == inputBitLength;
+        }
 
-        private static Color HashColor(string s) {
+        // Get color based on bit length
+        public static Color BaseColor(int bitLength) {
+            if (bitLength == AnyLength) {
+                return Color.FromArgb(180, 180, 180); // Gray for "any length"
+            }
+            
+            // Generate colors based on bit length
+            return bitLength switch {
+                1 => Color.FromArgb(100, 200, 140),  // Green for single bit
+                8 => Color.FromArgb(100, 140, 200),  // Blue for byte
+                16 => Color.FromArgb(200, 140, 100), // Orange for word
+                32 => Color.FromArgb(200, 100, 140), // Pink for dword
+                _ => HashColor(bitLength)            // Generate color for other lengths
+            };
+        }
+
+        private static Color HashColor(int bitLength) {
             unchecked {
-                int h = 23;
-                foreach (var ch in s) h = h * 31 + ch;
+                int h = bitLength * 31 + 23;
                 int r = 100 + (h & 0x7F);
                 int g = 100 + ((h >> 7) & 0x7F);
                 int b = 100 + ((h >> 14) & 0x7F);
