@@ -83,14 +83,30 @@ namespace BlockCanvas {
         }
         public void SaveTo(string path) {
             var dto = new LayoutDto { Version = 2, Graph = ToDto(root) };
-            var opts = new JsonSerializerOptions { WriteIndented = true };
-            opts.Converters.Add(new PortDefConverter());
-            File.WriteAllText(path, JsonSerializer.Serialize(dto, opts));
+            
+            if (path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) {
+                // Legacy JSON format
+                var opts = new JsonSerializerOptions { WriteIndented = true };
+                opts.Converters.Add(new PortDefConverter());
+                File.WriteAllText(path, JsonSerializer.Serialize(dto, opts));
+            } else {
+                // New S-expression format
+                SExpressionSerializer.SaveLayout(dto, path);
+            }
         }
         public void LoadFrom(string path) {
-            var opts = new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip };
-            opts.Converters.Add(new PortDefConverter());
-            var dto = JsonSerializer.Deserialize<LayoutDto>(File.ReadAllText(path), opts) ?? throw new InvalidDataException("Invalid file.");
+            LayoutDto dto;
+            
+            if (path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) {
+                // Legacy JSON format
+                var opts = new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip };
+                opts.Converters.Add(new PortDefConverter());
+                dto = JsonSerializer.Deserialize<LayoutDto>(File.ReadAllText(path), opts) ?? throw new InvalidDataException("Invalid file.");
+            } else {
+                // New S-expression format
+                dto = SExpressionSerializer.LoadLayout(path);
+            }
+            
             root = FromDto(dto.Graph, parent: null, owner: null);
             current = root;
             selection.Clear();
