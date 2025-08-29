@@ -308,7 +308,7 @@ namespace BlockCanvas {
                         menu.Items.Add(new ToolStripSeparator());
                         var addTypeMenu = new ToolStripMenuItem("Data Type");
                         
-                        string[] addTypes = { "Integer", "Float", "Bit" };
+                        string[] addTypes = { "Bit" };
                         foreach (string dataType in addTypes) {
                             var item = new ToolStripMenuItem(dataType) { Checked = string.Equals(hitNode.AddDataType, dataType, StringComparison.Ordinal) };
                             item.Click += (_, __) => {

@@ -199,7 +199,7 @@ namespace BlockCanvas {
         }
         private int CurrentLevel() => GetTrail().Count;
 
-        private void AddInputPort(Node node, string? name = null, string typeName = "Integer") {
+        private void AddInputPort(Node node, string? name = null, string typeName = "Bit") {
             // Handle special cases for primitive blocks
             if (node.Type == NodeType.Start || node.Type == NodeType.Decision ||
                 node.Type == NodeType.And || node.Type == NodeType.Or ||
@@ -224,7 +224,7 @@ namespace BlockCanvas {
             Invalidate();
         }
         
-        private void AddOutputPort(Node node, string? name = null, string typeName = "Integer") {
+        private void AddOutputPort(Node node, string? name = null, string typeName = "Bit") {
             // Handle special cases for primitive blocks
             if (node.Type == NodeType.End || node.Type == NodeType.Decision ||
                 node.Type == NodeType.And || node.Type == NodeType.Or ||

@@ -13,7 +13,7 @@ namespace BlockCanvas {
         public Node Owner { get; }
         public PortSide Side { get; }
         public string Name { get; set; }
-        public string TypeName { get; set; } = "Integer";
+        public string TypeName { get; set; } = "Bit";
 
         public RectangleF VisualRect;
         public float ArrowWidth = 12f;
@@ -22,7 +22,7 @@ namespace BlockCanvas {
         public PointF ConnectionPoint;
         public float CustomWidth = 108f; // Customizable port width
 
-        public Port(Node owner, PortSide side, string name, string typeName = "Integer") { Owner = owner; Side = side; Name = name; TypeName = TypeUtil.Normalize(typeName); }
+        public Port(Node owner, PortSide side, string name, string typeName = "Bit") { Owner = owner; Side = side; Name = name; TypeName = TypeUtil.Normalize(typeName); }
 
 
         public RectangleF HitRect {

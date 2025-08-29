@@ -39,7 +39,7 @@ namespace BlockCanvas {
         public NodeType Type { get; set; } = NodeType.Regular;
         public bool IsPermanent = false; // Cannot be deleted
         public string ConstValue { get; set; } = "0"; // Value for CONST blocks
-        public string AddDataType { get; set; } = "Integer"; // Current data type for ADD blocks
+        public string AddDataType { get; set; } = "Bit"; // Current data type for ADD blocks
 
 
 
@@ -58,10 +58,10 @@ namespace BlockCanvas {
                 } else if (Type == NodeType.Const) {
                     // CONST blocks need a single "Any" input trigger and one output for the constant value
                     Inputs.Add(new Port(this, PortSide.Input, "Trigger", "Any"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Value", "Integer"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Value", "Bit"));
                 } else if (Type == NodeType.Decision) {
-                    // Decision blocks take one integer input and have TRUE/FALSE bit outputs
-                    Inputs.Add(new Port(this, PortSide.Input, "Input", "Integer"));
+                    // Decision blocks take bit input and have TRUE/FALSE bit outputs
+                    Inputs.Add(new Port(this, PortSide.Input, "Input", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "FALSE", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "TRUE", "Bit"));
                 } else if (Type == NodeType.And) {
@@ -84,11 +84,10 @@ namespace BlockCanvas {
                     Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
                 } else if (Type == NodeType.Add) {
-                    // ADD block takes two inputs of same type, outputs result + overflow/carry
-                    // Default to Integer, but can be changed to Float or Bit
-                    Inputs.Add(new Port(this, PortSide.Input, "A", "Integer"));
-                    Inputs.Add(new Port(this, PortSide.Input, "B", "Integer"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Sum", "Integer"));
+                    // ADD block takes two bit inputs, outputs result + overflow/carry
+                    Inputs.Add(new Port(this, PortSide.Input, "A", "Bit"));
+                    Inputs.Add(new Port(this, PortSide.Input, "B", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Sum", "Bit"));
                     Outputs.Add(new Port(this, PortSide.Output, "Carry", "Bit"));
                 } else if (Type == NodeType.NullConsumer) {
                     // Null consumer accepts any input but produces no outputs
@@ -96,8 +95,8 @@ namespace BlockCanvas {
                     // No outputs - this block just consumes impetuses
                 } else {
                     // Regular nodes get default ports
-                    Inputs.Add(new Port(this, PortSide.Input, "In", "Integer"));
-                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Integer"));
+                    Inputs.Add(new Port(this, PortSide.Input, "In", "Bit"));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", "Bit"));
                 }
             }
             
@@ -124,22 +123,22 @@ namespace BlockCanvas {
             }
         }
 
-        // Update ADD block ports when data type changes
+        // Update ADD block ports when data type changes (now only supports Bit)
         public void UpdateAddPortTypes(string newDataType) {
             if (Type != NodeType.Add) return;
             
-            AddDataType = newDataType;
+            // Force to Bit since it's the only supported type
+            AddDataType = "Bit";
             
-            // Update input ports to new type
+            // All ports are Bit type
             if (Inputs.Count >= 2) {
-                Inputs[0].TypeName = newDataType; // A
-                Inputs[1].TypeName = newDataType; // B
+                Inputs[0].TypeName = "Bit"; // A
+                Inputs[1].TypeName = "Bit"; // B
             }
             
-            // Update Sum output to new type, Carry remains Bit
             if (Outputs.Count >= 2) {
-                Outputs[0].TypeName = newDataType; // Sum
-                // Outputs[1] remains "Bit" for Carry/Overflow
+                Outputs[0].TypeName = "Bit"; // Sum
+                Outputs[1].TypeName = "Bit"; // Carry
             }
         }
 

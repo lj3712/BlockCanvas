@@ -40,7 +40,7 @@ namespace BlockCanvas {
         [JsonPropertyName("type")] public string Type { get; set; } = "Regular";
         [JsonPropertyName("isPermanent")] public bool IsPermanent { get; set; } = false;
         [JsonPropertyName("constValue")] public string ConstValue { get; set; } = "0";
-        [JsonPropertyName("addDataType")] public string AddDataType { get; set; } = "Integer";
+        [JsonPropertyName("addDataType")] public string AddDataType { get; set; } = "Bit";
 
         [JsonPropertyName("inputs")] public List<PortDef> Inputs { get; set; } = new();
         [JsonPropertyName("outputs")] public List<PortDef> Outputs { get; set; } = new();
@@ -61,7 +61,7 @@ namespace BlockCanvas {
 
     public sealed class PortDef {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
-        [JsonPropertyName("type")] public string Type { get; set; } = "Integer";
+        [JsonPropertyName("type")] public string Type { get; set; } = "Bit";
         [JsonPropertyName("width")] public float Width { get; set; } = 108f;
     }
 
@@ -70,11 +70,11 @@ namespace BlockCanvas {
         public override PortDef? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
             if (reader.TokenType == JsonTokenType.String) {
                 var name = reader.GetString() ?? "";
-                return new PortDef { Name = name, Type = "Integer", Width = 108f };
+                return new PortDef { Name = name, Type = "Bit", Width = 108f };
             }
             if (reader.TokenType == JsonTokenType.StartObject) {
                 string? name = null;
-                string typeName = "Integer";
+                string typeName = "Bit";
                 float width = 108f;
 
                 while (reader.Read() && reader.TokenType != JsonTokenType.EndObject) {
