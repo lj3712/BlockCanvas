@@ -173,6 +173,10 @@ namespace BlockCanvas {
                     fill = new LinearGradientBrush(rect, Color.FromArgb(80, 58, 120), Color.FromArgb(60, 44, 80), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(160, 120, 255) : Color.FromArgb(120, 85, 150), selected ? 2.5f : 1.5f);
                     break;
+                case NodeType.Marshaller:
+                    fill = new LinearGradientBrush(rect, Color.FromArgb(120, 80, 58), Color.FromArgb(80, 60, 44), LinearGradientMode.Vertical);
+                    border = new Pen(selected ? Color.FromArgb(255, 160, 120) : Color.FromArgb(150, 120, 85), selected ? 2.5f : 1.5f);
+                    break;
                 default:
                     fill = new LinearGradientBrush(rect, Color.FromArgb(58, 62, 70), Color.FromArgb(44, 47, 53), LinearGradientMode.Vertical);
                     border = new Pen(selected ? Color.FromArgb(120, 190, 255) : Color.FromArgb(85, 90, 100), selected ? 2.5f : 1.5f);
@@ -205,6 +209,10 @@ namespace BlockCanvas {
                 case NodeType.Nand:
                     titleBrush = new SolidBrush(Color.FromArgb(90, 70, 120));
                     titleBorder = new Pen(Color.FromArgb(120, 90, 150), 1);
+                    break;
+                case NodeType.Marshaller:
+                    titleBrush = new SolidBrush(Color.FromArgb(120, 90, 70));
+                    titleBorder = new Pen(Color.FromArgb(150, 120, 90), 1);
                     break;
                 default:
                     titleBrush = new SolidBrush(Color.FromArgb(70, 74, 82));
@@ -243,7 +251,7 @@ namespace BlockCanvas {
             float r = port.CornerRadius;
             var rect = port.VisualRect;
 
-            var baseC = TypeUtil.BaseColor(port.BitLength);
+            var baseC = TypeUtil.GetPortColor(port);
             Color cTop = ControlPaint.Light(baseC);
             Color cBot = ControlPaint.Dark(baseC);
 
@@ -282,7 +290,7 @@ namespace BlockCanvas {
             using var font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
             using var tb = new SolidBrush(Color.White);
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
-            g.DrawString($"{port.Name} : {TypeUtil.FormatBitLength(port.BitLength)}", font, tb, rect, sf);
+            g.DrawString($"{port.Name} : {port.GetDisplayType()}", font, tb, rect, sf);
         }
 
         private void DrawEdge(Graphics g, Edge e) {

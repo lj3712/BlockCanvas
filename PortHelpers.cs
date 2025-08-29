@@ -39,6 +39,23 @@ namespace BlockCanvas {
             // Lengths must match exactly
             return outputBitLength == inputBitLength;
         }
+        
+        // Check if two ports with potential user types are compatible
+        public static bool Compatible(Port outputPort, Port inputPort) {
+            // If input accepts any length, it's compatible
+            if (inputPort.BitLength == AnyLength) return true;
+            
+            // If both have user types, they must match exactly
+            if (outputPort.IsUserType && inputPort.IsUserType) {
+                return string.Equals(outputPort.UserTypeName, inputPort.UserTypeName, StringComparison.Ordinal);
+            }
+            
+            // If one has user type and other is bit string, they're incompatible
+            if (outputPort.IsUserType != inputPort.IsUserType) return false;
+            
+            // Both are bit strings, check length compatibility
+            return Compatible(outputPort.BitLength, inputPort.BitLength);
+        }
 
         // Get color based on bit length
         public static Color BaseColor(int bitLength) {
@@ -56,9 +73,28 @@ namespace BlockCanvas {
             };
         }
 
+        // Get color for a port (handles both user types and bit strings)
+        public static Color GetPortColor(Port port) {
+            if (port.IsUserType) {
+                return HashColorFromString(port.UserTypeName!);
+            }
+            return BaseColor(port.BitLength);
+        }
+        
         private static Color HashColor(int bitLength) {
             unchecked {
                 int h = bitLength * 31 + 23;
+                int r = 100 + (h & 0x7F);
+                int g = 100 + ((h >> 7) & 0x7F);
+                int b = 100 + ((h >> 14) & 0x7F);
+                return Color.FromArgb(r, g, b);
+            }
+        }
+        
+        private static Color HashColorFromString(string typeName) {
+            unchecked {
+                int h = 23;
+                foreach (var ch in typeName) h = h * 31 + ch;
                 int r = 100 + (h & 0x7F);
                 int g = 100 + ((h >> 7) & 0x7F);
                 int b = 100 + ((h >> 14) & 0x7F);

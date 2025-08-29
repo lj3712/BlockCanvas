@@ -23,7 +23,8 @@ namespace BlockCanvas {
                 // Don't allow zooming into primitive blocks
                 if (hitNode.Type == NodeType.Start || hitNode.Type == NodeType.End || 
                     hitNode.Type == NodeType.Const || hitNode.Type == NodeType.Decision ||
-                    hitNode.Type == NodeType.Nand || hitNode.Type == NodeType.NullConsumer) {
+                    hitNode.Type == NodeType.Nand || hitNode.Type == NodeType.Marshaller || 
+                    hitNode.Type == NodeType.NullConsumer) {
                     System.Media.SystemSounds.Beep.Play();
                     return;
                 }
@@ -238,9 +239,29 @@ namespace BlockCanvas {
                         string? s = Microsoft.VisualBasic.Interaction.InputBox("Bit length (1-1024):", "Set Port Bit Length", hitPort.BitLength.ToString());
                         if (!string.IsNullOrWhiteSpace(s) && int.TryParse(s, out int length) && length >= 1 && length <= 1024) {
                             hitPort.BitLength = length;
+                            hitPort.UserTypeName = null; // Clear user type when setting bit length
                             Invalidate();
                         }
                     }));
+                    
+                    // User-defined type…
+                    typeMenu.DropDownItems.Add(new ToolStripSeparator());
+                    typeMenu.DropDownItems.Add(new ToolStripMenuItem("Set User-Defined Type…", null, (_, __) => {
+                        string? typeName = Microsoft.VisualBasic.Interaction.InputBox("User type name:", "Set Port User Type", hitPort.UserTypeName ?? "");
+                        if (!string.IsNullOrWhiteSpace(typeName)) {
+                            hitPort.UserTypeName = typeName.Trim();
+                            // Keep the existing bit length for internal calculations
+                            Invalidate();
+                        }
+                    }));
+                    
+                    // Clear user type (back to bit string)
+                    if (hitPort.IsUserType) {
+                        typeMenu.DropDownItems.Add(new ToolStripMenuItem("Clear User Type", null, (_, __) => {
+                            hitPort.UserTypeName = null;
+                            Invalidate();
+                        }));
+                    }
 
                     menu.Items.Add(typeMenu);
 
@@ -362,6 +383,7 @@ namespace BlockCanvas {
                     primitivesMenu.DropDownItems.Add("CONST", null, (_, __) => AddPrimitiveAt("CONST", NodeType.Const));
                     primitivesMenu.DropDownItems.Add("DECISION", null, (_, __) => AddPrimitiveAt("DECISION", NodeType.Decision));
                     primitivesMenu.DropDownItems.Add("NAND", null, (_, __) => AddPrimitiveAt("NAND", NodeType.Nand));
+                    primitivesMenu.DropDownItems.Add("MARSHALLER", null, (_, __) => AddPrimitiveAt("MARSHALLER", NodeType.Marshaller));
                     primitivesMenu.DropDownItems.Add("NULL", null, (_, __) => AddPrimitiveAt("NULL", NodeType.NullConsumer));
                     
                     menu.Items.Add(primitivesMenu);
@@ -484,7 +506,7 @@ namespace BlockCanvas {
                     else if (connectStartPort.Side == PortSide.Input && endPort.Side == PortSide.Output) { outPort = endPort; inPort = connectStartPort; }
 
                     if (outPort != null && inPort != null) {
-                        if (!TypeUtil.Compatible(outPort.BitLength, inPort.BitLength)) {
+                        if (!TypeUtil.Compatible(outPort, inPort)) {
                             System.Media.SystemSounds.Beep.Play();
                         }
                         else {

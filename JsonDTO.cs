@@ -40,6 +40,7 @@ namespace BlockCanvas {
         [JsonPropertyName("type")] public string Type { get; set; } = "Regular";
         [JsonPropertyName("isPermanent")] public bool IsPermanent { get; set; } = false;
         [JsonPropertyName("constValue")] public string ConstValue { get; set; } = "0";
+        [JsonPropertyName("marshallerOutputType")] public string? MarshallerOutputType { get; set; } = null;
 
         [JsonPropertyName("inputs")] public List<PortDef> Inputs { get; set; } = new();
         [JsonPropertyName("outputs")] public List<PortDef> Outputs { get; set; } = new();
@@ -61,6 +62,7 @@ namespace BlockCanvas {
     public sealed class PortDef {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
         [JsonPropertyName("bitLength")] public int BitLength { get; set; } = 1;
+        [JsonPropertyName("userTypeName")] public string? UserTypeName { get; set; } = null;
         [JsonPropertyName("width")] public float Width { get; set; } = 108f;
         
         // Keep Type property for backward compatibility during transition
@@ -77,6 +79,7 @@ namespace BlockCanvas {
             if (reader.TokenType == JsonTokenType.StartObject) {
                 string? name = null;
                 int bitLength = 1;
+                string? userTypeName = null;
                 float width = 108f;
                 string? legacyType = null;
 
@@ -87,6 +90,7 @@ namespace BlockCanvas {
                     switch (prop) {
                         case "name": name = reader.GetString(); break;
                         case "bitLength": bitLength = reader.GetInt32(); break;
+                        case "userTypeName": userTypeName = reader.GetString(); break;
                         case "type": legacyType = reader.GetString(); break; // For backward compatibility
                         case "width": width = reader.GetSingle(); break;
                     }
@@ -97,7 +101,7 @@ namespace BlockCanvas {
                     bitLength = TypeUtil.GetBitLength(legacyType);
                 }
                 
-                return new PortDef { Name = name ?? "", BitLength = bitLength, Width = width };
+                return new PortDef { Name = name ?? "", BitLength = bitLength, UserTypeName = userTypeName, Width = width };
             }
             throw new JsonException("Invalid PortDef");
         }
@@ -106,6 +110,9 @@ namespace BlockCanvas {
             writer.WriteStartObject();
             writer.WriteString("name", value.Name);
             writer.WriteNumber("bitLength", value.BitLength);
+            if (!string.IsNullOrEmpty(value.UserTypeName)) {
+                writer.WriteString("userTypeName", value.UserTypeName);
+            }
             writer.WriteNumber("width", value.Width);
             writer.WriteEndObject();
         }

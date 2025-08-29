@@ -14,6 +14,7 @@ namespace BlockCanvas {
         public PortSide Side { get; }
         public string Name { get; set; }
         public int BitLength { get; set; } = 1; // Number of bits this port expects
+        public string? UserTypeName { get; set; } = null; // User-defined type name, null for bit strings
 
         public RectangleF VisualRect;
         public float ArrowWidth = 12f;
@@ -24,8 +25,19 @@ namespace BlockCanvas {
 
         public Port(Node owner, PortSide side, string name, int bitLength = 1) { Owner = owner; Side = side; Name = name; BitLength = bitLength; }
         
+        // Constructor for user-defined types
+        public Port(Node owner, PortSide side, string name, string userTypeName, int bitLength) {
+            Owner = owner; Side = side; Name = name; UserTypeName = userTypeName; BitLength = bitLength;
+        }
+        
         // Helper constructor for backward compatibility during transition
         public Port(Node owner, PortSide side, string name, string typeName) : this(owner, side, name, TypeUtil.GetBitLength(typeName)) { }
+        
+        // Helper method to get display type
+        public string GetDisplayType() => UserTypeName ?? TypeUtil.FormatBitLength(BitLength);
+        
+        // Helper method to check if this port uses a user-defined type
+        public bool IsUserType => !string.IsNullOrEmpty(UserTypeName);
 
 
         public RectangleF HitRect {

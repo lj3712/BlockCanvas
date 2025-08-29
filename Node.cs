@@ -16,6 +16,7 @@ namespace BlockCanvas {
         Const,
         Decision,
         Nand,
+        Marshaller,
         NullConsumer
     }
     public sealed class Node {
@@ -35,6 +36,7 @@ namespace BlockCanvas {
         public NodeType Type { get; set; } = NodeType.Regular;
         public bool IsPermanent = false; // Cannot be deleted
         public string ConstValue { get; set; } = "0"; // Value for CONST blocks
+        public string? MarshallerOutputType { get; set; } = null; // User-defined type name for marshaller output
 
 
 
@@ -64,6 +66,12 @@ namespace BlockCanvas {
                     Inputs.Add(new Port(this, PortSide.Input, "A", 1));
                     Inputs.Add(new Port(this, PortSide.Input, "B", 1));
                     Outputs.Add(new Port(this, PortSide.Output, "Out", 1));
+                } else if (Type == NodeType.Marshaller) {
+                    // Marshaller starts with two inputs and one output for construction
+                    // Can be reconfigured for deconstruction (one input, multiple outputs)
+                    Inputs.Add(new Port(this, PortSide.Input, "In1", 1));
+                    Inputs.Add(new Port(this, PortSide.Input, "In2", 1));
+                    Outputs.Add(new Port(this, PortSide.Output, "Out", 2)); // Combined bit length
                 } else if (Type == NodeType.NullConsumer) {
                     // Null consumer accepts any length input but produces no outputs
                     Inputs.Add(new Port(this, PortSide.Input, "In", TypeUtil.AnyLength));
@@ -75,9 +83,11 @@ namespace BlockCanvas {
                 }
             }
             
-            // Set special size for null consumer - make it a thin bar
+            // Set special sizes for primitive blocks
             if (Type == NodeType.NullConsumer) {
                 Size = new SizeF(120, 24); // Thin horizontal bar
+            } else if (Type == NodeType.Marshaller) {
+                Size = new SizeF(80, 160); // Vertical rectangular oval shape
             }
         }
 
