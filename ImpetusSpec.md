@@ -32,7 +32,8 @@ Impetus is a visual programming language that is, in essence, a hierarchical flo
 18) Program execution also terminates if there are no remaining impetuses, and no remaining active processing.
 
 ## Advanced Features
-19) Types can be constructed and deconstructed from/into their constituent members by use of a "marshaller". The marshaller has any number of input ports and one output port, representing the combined data of all inputs. The marshaller can also do the reverse (demarshalling), with one input port and any number of output ports. In diagrams, the marshaller is represented by a vertical rectangular oval. 
+19) Types can be constructed and deconstructed from/into their constituent members by use of a "marshaller". The marshaller has any number of input ports and one output port, representing the combined data of all inputs. The marshaller can also do the reverse (demarshalling), with one input port and any number of output ports. In diagrams, the marshaller is represented by a vertical rectangular oval.  
+20) Marshallers/demarshallers can only move up/down one level of data.
 
 ## Bit Strings and User types
 20) Bit strings are defined by "[x]", where x is the length of the bit string. Ports use this notation at the lowest level.
